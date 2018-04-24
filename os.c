@@ -138,20 +138,6 @@ void start_system_timer() {
 */
 
 __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
-//THIS PART BELOW IS FOR old_sp
-   //move old_sp values into Z
-/*
-   asm volatile("mov r31, r23");
-   asm volatile("mov r30, r22");
-   asm volatile("ld r22, Z");
-   asm volatile("adiw Z, 1");
-   asm volatile("ld r21, Z");
-   asm volatile("ldi r31, 0x00");
-   asm volatile("ldi r30, 0x5E");
-   asm volatile("st Z, r22");
-   asm volatile("ldi r30, 0x5D");
-   asm volatile("st Z, r21");
-*/
    //am i pushing correctly, PUSH R2 FIRST
    asm volatile("push r2");
    asm volatile("push r3");
@@ -188,6 +174,7 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    asm volatile("mov r31, r23");
    asm volatile("mov r30, r22");
    //now store the stack pointer values into Z...
+/////////////////////POSSIBLE POINT OF FAILURE
    asm volatile("st Z+, r19"); //move Z pointer up 1 address...
    asm volatile("st Z, r18");
 
