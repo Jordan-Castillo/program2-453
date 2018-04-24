@@ -172,8 +172,24 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    asm volatile("push r28");
    asm volatile("push r29");
 //SAVE stackpointer into the address that old_sp points to
+/*
+   save the current stack pointer into local registers...
+   set the Z register to point to old_sp
+   store the stack pointer values that we saved, into old_sp
+
+*/
+   asm volatile("ldi r31, 0x00");
+   asm volatile("ldi r30, 0x5E");
+   asm volatile("ld r18, Z");
+   asm volatile("ldi r30, 0x5D");
+   asm volatile("ld r19, Z");
+   //current stackptr now in r18-r19
+   //now set Z reg, old_sp is in reg r23(high), r22(low)
    asm volatile("mov r31, r23");
-   asm volatile("");
+   asm volatile("mov r30, r22");
+   //now store the stack pointer values into Z...
+   asm volatile("st Z+, r19"); //move Z pointer up 1 address...
+   asm volatile("st Z, r18");
 
 //THIS PART BELOW IS FOR THE new_sp
    //move new_sp values into Z
@@ -223,7 +239,7 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
 //use ijmp LAST
 
 
-
+//load r29 (high), r28 (low) 
 __attribute__((naked)) void thread_start(void) {
    sei(); //enable interrupts - leave as the first statement in thread_start()
 
