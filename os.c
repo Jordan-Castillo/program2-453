@@ -174,7 +174,7 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    asm volatile("mov r31, r23");
    asm volatile("mov r30, r22");
    //now store the stack pointer values into Z...
-/////////////////////POSSIBLE POINT OF FAILURE
+///~~~~~~~~~~~~~~~~~~~POSSIBLE POINT OF FAILURE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    asm volatile("st Z+, r19"); //move Z pointer up 1 address...
    asm volatile("st Z, r18");
 
@@ -231,5 +231,9 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
 //ijmp to address specified by Z
 __attribute__((naked)) void thread_start(void) {
    sei(); //enable interrupts - leave as the first statement in thread_start()
-
+   asm volatile("mov r25, r17");
+   asm volatile("mov r24, r16");
+   asm volatile("mov r31, r29");
+   asm volatile("mov r30, r28");
+   asm volatile("ijmp");
 }
