@@ -239,7 +239,9 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
 //use ijmp LAST
 
 
-//load r29 (high), r28 (low) 
+//load r17 (high), r16 (low) of the arguments, into r25(high), r24(low) for ARGS1
+//load r29 (high), r28 (low) of the address into the Z register...
+//ijmp to address specified by Z
 __attribute__((naked)) void thread_start(void) {
    sei(); //enable interrupts - leave as the first statement in thread_start()
 
