@@ -13,13 +13,33 @@ int numThreads;
 __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp);
 __attribute__((naked)) void thread_start(void);
 
+/******************************************************************************
+ * Function:  create_thread
+ * --------------------
+ * Desc: Initializes stack space for new threads. Managing tasks such as setting
+ *       setting the correct stack pointer, storing the address of the
+ *       functions to be threaded, allocating memory for the stack and
+ *       storing the address of thread_start so that it can be called
+ *       implicitly.
+ *
+ * Parameter:
+ *    name: name of the function
+ *    address: address of the thread to start
+ *    args: pointer to the thread argument
+ *    stack_size: size of the stack specified by the user
+ *****************************************************************************/
 //from here, we need to malloc the size of the registers, + necessary stack space
 //i think we save this pointer where the memory is saved, somewhere....
 void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size) {
    void *memAddr = malloc(stack_size);
+   memBegin -> threads[numThreads].stackBase = memAddr;
+   memBegin -> threads[numThreads].stackEnd = memAddr + sizeof(stack_size);
+
    //int *id = (int*)args;
    regs_context_switch *ptr;
    memAddr = memAddr + (stack_size - sizeof(regs_context_switch));
+   memBegin -> threads[numThreads].stackTop = memAddr;
+
    ptr = (regs_context_switch*) memAddr;
    ptr->padding = 0;
    //now the address of the function is in our registers
@@ -56,6 +76,16 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
    numThreads++;
 }
 
+/******************************************************************************
+ * Function:  os_init
+ * ------------------
+ * Desc: Initializes the multithreading program by calling functions that
+ *       will produce new threads and start context switches causing the threads
+ *       to continuously swaps between each other.
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
 void os_init() {
    serial_init();
 
@@ -80,6 +110,15 @@ void os_init() {
    return;
 }
 
+/******************************************************************************
+ * Function:  get_next_thread
+ * --------------------------
+ * Desc: Defines the next thread to be ran in the queue
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
+
 uint8_t get_next_thread(void) {
    if(curThread < (numThreads - 1))
       curThread++;
@@ -87,6 +126,17 @@ uint8_t get_next_thread(void) {
       curThread = 0;
    return curThread;
 }
+
+/******************************************************************************
+ * Function:  ISR
+ * --------------
+ * Desc: Interrupt routine is automatically run every 10 milliseconds. It is
+ *       used for the system_timer, context_switch(when to switch to a new
+ *       thread).
+ *
+ * Parameter:
+ *    TIMER0_COMPA_vect:
+ *****************************************************************************/
 //This interrupt routine is automatically run every 10 milliseconds
 ISR(TIMER0_COMPA_vect) {
    void *new_sp, *old_sp;
@@ -113,6 +163,14 @@ ISR(TIMER0_COMPA_vect) {
    //and r0 before exiting the ISR
 }
 
+/******************************************************************************
+ * Function:  start_system_timer
+ * -----------------------------
+ * Desc: Call this to start the system timer interrupt
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
 //Call this to start the system timer interrupt
 void start_system_timer() {
    TIMSK0 |= _BV(OCIE0A);  //interrupt on compare match
@@ -138,6 +196,18 @@ void start_system_timer() {
 
 */
 
+/******************************************************************************
+ * Function:  context_switch
+ * -------------------------
+ * Desc: Saves the state of the old thread and loads the state of the new thread
+ *       to be ran. Saves the stack pointer into the address that old_sp points
+ *       to. Moves new_sp values into the Z register. It will also pop off the
+ *       top three bytes implicitly calling, thread_start when 'RET' is called.
+ *
+ * Parameter:
+ *    new_sp: the stack pointer to the new thread
+ *    old_sp: the stack pointer to the current thread
+ *****************************************************************************/
 __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    //am i pushing correctly, PUSH R2 FIRST
    asm volatile("push r2");
@@ -220,6 +290,15 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    asm volatile("RET");
 }
 
+/******************************************************************************
+ * Function:  thread_start
+ * -----------------------
+ * Desc: Starts the given thread by moving the stack pointer into the program
+ *       counter as well as the function arguments into the correct registers.
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
 //load r17 (high), r16 (low) of the arguments, into r25(high), r24(low) for ARGS1
 //load r29 (high), r28 (low) of the address into the Z register...
 //ijmp to address specified by Z

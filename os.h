@@ -12,6 +12,9 @@ typedef struct thread_t {
    void *stackPointer;
    char tName[11];
    uint16_t stackSize;
+   void *stackBase;
+   void *stackEnd;
+   void *stackTop;
 }thread_t;
 //144 bytes,
 
