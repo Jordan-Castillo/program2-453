@@ -22,10 +22,10 @@
 void stayHere(void);
 void lightOn(void);
 void lightOff(void);
-void blink(void);
+void blink(uint16_t *rate);
 uint8_t read_byte();
 void serial_init();
-unsigned int write_byte(unsigned int b);
+uint8_t write_byte(uint8_t b);
 void print_string(char* s);
 void print_int(uint16_t i);
 void print_int32(uint32_t i);

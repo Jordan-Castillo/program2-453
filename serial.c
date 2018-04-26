@@ -1,7 +1,11 @@
-     #include <avr/io.h>
+#include <avr/io.h>
 #include <stdio.h>
 #include <util/delay.h>
+#include "globals.h"
+#include <assert.h>
 
+extern volatile int global;
+extern int numThreads;
 /*
  * Initialize the serial port.
  */
@@ -155,17 +159,24 @@ void set_cursor(uint8_t row, uint8_t col) {
 
    write_byte(0x1B); //ESC
    write_byte(0x5B); // [
+   print_int(row);
+/*
    while(*r != '\0') { //{ROW}'s
       write_byte(*r);
       r++;
    }
+*/
    write_byte(0x3B); // ;
+   print_int(col);
+   /*
    while(*c != '\0') { // {COL}'s
       write_byte(*c);
       c++;
    }
+   */
    write_byte(0x48); // H
 }
+
 /* set the foreground color
  *   <ESC>[{attr1};...;{attrn}m
  */
@@ -176,7 +187,6 @@ void set_color(uint8_t color) {
     write_byte(color); //{attr}
     write_byte(0x6D); // m
 }
-
 
 void lightOn(void) {
    asm volatile("ldi r31, 0x00");
@@ -210,28 +220,25 @@ void delay_ms(int ms) {
       _delay_ms(1);
 }
 
-void blink(void){
+void blink(uint16_t *rate) {
    uint8_t keyboardValue = 'o';
-   int blinkRate = 500;
+   int blinkRate = (int)*rate;
    while(1){
       keyboardValue = read_byte();
       lightOn();
       delay_ms(blinkRate);
       lightOff();
       delay_ms(blinkRate);
-      if(keyboardValue == 'a')
-         blinkRate = blinkRate > 20 ? blinkRate - 20 : blinkRate;
-      if(keyboardValue == 'z')
-         blinkRate = blinkRate < 1000 ? blinkRate + 20 : blinkRate;
+      if(keyboardValue == 'a'){
+         //blinkRate = blinkRate > 20 ? blinkRate - 20 : blinkRate;
+         blinkRate -= 20;
+      }
+      if(keyboardValue == 'z'){
+         //blinkRate = blinkRate < 1000 ? blinkRate + 20 : blinkRate;
+         blinkRate += 20;
+      }
    }
 }//end blink
-
-void stayHere(void) {
-   while(1){
-      delay_ms(2);
-      print_string("Jordan is here!");
-   }
-}//end stayHere
 
 void clear_screen(void) {
    write_byte(0x1B); //ESC
@@ -239,3 +246,25 @@ void clear_screen(void) {
    write_byte(0x32); // 2
    write_byte(0x4A); // J
 }
+
+void stayHere(void) {
+   int prevGlobal = global;
+   int i = 0;
+   while(1){
+      if(prevGlobal < (global - 100)) { //only update screen if 1s past
+         prevGlobal = global;
+         set_cursor(0, 0);
+         clear_screen();
+         set_color(YELLOW);
+         print_string("Timer: ");
+         print_int32((global/100));
+         set_cursor(2, 0);
+         print_string("Number of Threads: ");
+         print_int(numThreads);
+
+         //for(i = 0; i < numThreads; i++){
+
+         //}
+      }
+   }
+}//end stayHere
