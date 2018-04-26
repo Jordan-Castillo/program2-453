@@ -1,0 +1,78 @@
+/******************************************************************************
+ * Function:  create_thread
+ * --------------------
+ * Desc: Initializes stack space for new threads. Managing tasks such as setting
+ *       setting the correct stack pointer, storing the address of the
+ *       functions to be threaded, allocating memory for the stack and
+ *       storing the address of thread_start so that it can be called
+ *       implicitly.
+ *
+ * Parameter:
+ *    name: name of the function
+ *    address: address of the thread to start
+ *    args: pointer to the thread argument
+ *    stack_size: size of the stack specified by the user
+ *****************************************************************************/
+
+/******************************************************************************
+ * Function:  os_init
+ * ------------------
+ * Desc: Initializes the multithreading program by calling functions that
+ *       will produce new threads and start context switches causing the threads
+ *       to continuously swaps between each other.
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
+
+/******************************************************************************
+ * Function:  get_next_thread
+ * --------------------------
+ * Desc: Defines the next thread to be ran in the queue
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
+
+/******************************************************************************
+ * Function:  ISR
+ * --------------
+ * Desc: Interrupt routine is automatically run every 10 milliseconds. It is
+ *       used for the system_timer, context_switch(when to switch to a new
+ *       thread).
+ *
+ * Parameter:
+ *    TIMER0_COMPA_vect:
+ *****************************************************************************/
+
+/******************************************************************************
+ * Function:  start_system_timer
+ * -----------------------------
+ * Desc: Call this to start the system timer interrupt
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
+
+/******************************************************************************
+ * Function:  context_switch
+ * -------------------------
+ * Desc: Saves the state of the old thread and loads the state of the new thread
+ *       to be ran. Saves the stack pointer into the address that old_sp points
+ *       to. Moves new_sp values into the Z register. It will also pop off the 
+ *       top three bytes implicitly calling, thread_start when 'RET' is called.
+ *
+ * Parameter:
+ *    new_sp: the stack pointer to the new thread
+ *    old_sp: the stack pointer to the current thread
+ *****************************************************************************/
+
+/******************************************************************************
+ * Function:  thread_start
+ * -----------------------
+ * Desc: Starts the given thread by moving the stack pointer into the program
+ *       counter as well as the function arguments into the correct registers.
+ *
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
