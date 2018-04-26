@@ -17,17 +17,17 @@ __attribute__((naked)) void thread_start(void);
 //i think we save this pointer where the memory is saved, somewhere....
 void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size) {
    void *memAddr = malloc(stack_size);
-   int *id = (int*)args;
+   //int *id = (int*)args;
    regs_context_switch *ptr;
    memAddr = memAddr + (stack_size - sizeof(regs_context_switch));
    ptr = (regs_context_switch*) memAddr;
    ptr->padding = 0;
    //now the address of the function is in our registers
-   ptr->r29 = ((uint16_t) address & 0xFF00) >> 8; // 0;
-   ptr->r28 = ((uint16_t) address & 0x00FF); // 0;
+   ptr->r29 = ((uint16_t) address & 0xFF00) >> 8;   // 0;
+   ptr->r28 = ((uint16_t) address & 0x00FF);   // 0;
    //now the address of the arguments is in our registers as well
-   ptr->r17 = ((uint16_t) args & 0xFF00) >> 8; // 0;
-   ptr->r16 = ((uint16_t) args & 0x00FF);// 0;
+   ptr->r17 = ((uint16_t) args & 0xFF00) >> 8;   // 0;
+   ptr->r16 = ((uint16_t) args & 0x00FF);   // 0;
    ptr->r15 = 0;
    ptr->r14 = 0;
    ptr->r13 = 0;
@@ -48,7 +48,7 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
 
    memBegin -> systemTime = 0;
    memBegin -> runningThread = 0;
-   memBegin -> threads[numThreads].id = *id;
+   memBegin -> threads[numThreads].id = numThreads;
    //memBegin -> threads[numThreads].tName = name;
    memcpy(memBegin->threads[numThreads].tName, name, strlen(name) + 1);
    memBegin -> threads[numThreads].stackSize = stack_size;
@@ -61,7 +61,7 @@ void os_init() {
    start_system_timer();
    sei();
 
-   int blinkId = 0;
+   int blinkId = 1000;
    int stayId = 1;
    int curThread = 0;
 
@@ -73,8 +73,6 @@ void os_init() {
    //first context_switch() call
    context_switch((uint16_t*)&memBegin -> threads[0].stackPointer,
     (uint16_t*)&dummyThread);
-
-
 
    return;
 }
@@ -138,20 +136,6 @@ void start_system_timer() {
 */
 
 __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
-//THIS PART BELOW IS FOR old_sp
-   //move old_sp values into Z
-/*
-   asm volatile("mov r31, r23");
-   asm volatile("mov r30, r22");
-   asm volatile("ld r22, Z");
-   asm volatile("adiw Z, 1");
-   asm volatile("ld r21, Z");
-   asm volatile("ldi r31, 0x00");
-   asm volatile("ldi r30, 0x5E");
-   asm volatile("st Z, r22");
-   asm volatile("ldi r30, 0x5D");
-   asm volatile("st Z, r21");
-*/
    //am i pushing correctly, PUSH R2 FIRST
    asm volatile("push r2");
    asm volatile("push r3");
@@ -188,6 +172,7 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    asm volatile("mov r31, r23");
    asm volatile("mov r30, r22");
    //now store the stack pointer values into Z...
+///~~~~~~~~~~~~~~~~~~~POSSIBLE POINT OF FAILURE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    asm volatile("st Z+, r19"); //move Z pointer up 1 address...
    asm volatile("st Z, r18");
 
@@ -232,17 +217,14 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    asm volatile("RET");
 }
 
-
-// apparently from inside this function, we can access the arguments sent to create_thread
-// we need to change the Z register, to be the address of the function we want to runningThread
-//
-//use ijmp LAST
-
-
 //load r17 (high), r16 (low) of the arguments, into r25(high), r24(low) for ARGS1
 //load r29 (high), r28 (low) of the address into the Z register...
 //ijmp to address specified by Z
 __attribute__((naked)) void thread_start(void) {
    sei(); //enable interrupts - leave as the first statement in thread_start()
-
+   asm volatile("mov r25, r17");
+   asm volatile("mov r24, r16");
+   asm volatile("mov r31, r29");
+   asm volatile("mov r30, r28");
+   asm volatile("ijmp");
 }

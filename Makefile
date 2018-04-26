@@ -14,6 +14,16 @@ main: main.c serial.c os.c
 	avr-objcopy -O ihex main.elf main.hex
 	avr-size main.elf
 
+blink: blink.c serial.c os.c
+	avr-gcc -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o main.elf blink.c serial.c os.c
+	avr-objcopy -O ihex main.elf main.hex
+	avr-size main.elf
+
+statsOnly: statsOnly.c serial.c os.c
+	avr-gcc -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o main.elf statsOnly.c serial.c os.c
+	avr-objcopy -O ihex main.elf main.hex
+	avr-size main.elf
+
 
 #flash the Arduino with the program
 program: main.hex
