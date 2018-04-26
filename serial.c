@@ -230,8 +230,8 @@ void blink(uint16_t *rate) {
    uint8_t keyboardValue = 'o';
    int blinkRate = (int)*rate;
    while(1){
-      set_cursor(10,10);
-      print_int(blinkRate);
+      // set_cursor(10,10);
+      // print_int(blinkRate);
       keyboardValue = read_byte();
       lightOn();
       delay_ms(blinkRate);
@@ -280,6 +280,58 @@ void stayHere(void) {
          print_string("Thread PC: ");
          temp = (uint16_t)&(memBegin->threads[0].stackPointer);
          print_hex(temp);
+         // not working
+         set_cursor(7, 0);
+         print_string("Stack Usage: ");
+         print_int((uint16_t)memBegin->threads[1].stackPointer -
+                     (uint16_t)memBegin->threads[1].stackEnd);
+         print_string(" bytes");
+         set_cursor(8, 0);
+         print_string("Stack Size: ");
+         print_int(memBegin->threads[0].stackSize);
+         print_string(" bytes");
+         set_cursor(9, 0);
+         print_string("Current top of stack: ");
+         print_hex((uint16_t)memBegin->threads[0].stackPointer);
+         set_cursor(10, 0);
+         print_string("Stack base: ");
+         print_hex((uint16_t)memBegin->threads[0].stackBase);
+         set_cursor(11, 0);
+         print_string("Stack end: ");
+         print_hex((uint16_t)memBegin->threads[0].stackEnd);
+
+         // ---------------------- Second thread -------------------------------
+         set_color(CYAN);
+         set_cursor(13, 0);
+         print_string("Thread Id: ");
+         print_int(1);
+         set_cursor(14, 0);
+         print_string("Thread name: ");
+         print_string(memBegin->threads[1].tName);
+         set_cursor(15, 0);
+         print_string("Thread PC: ");
+         temp = (uint16_t)&(memBegin->threads[1].stackPointer);
+         print_hex(temp);
+         // not working
+         set_cursor(16, 0);
+         print_string("Stack Usage: ");
+         print_int((uint16_t)memBegin->threads[1].stackPointer -
+                     (uint16_t)memBegin->threads[1].stackEnd);
+         print_string(" bytes");
+         set_cursor(17, 0);
+         print_string("Stack Size: ");
+         print_int(memBegin->threads[1].stackSize);
+         print_string(" bytes");
+         set_cursor(18, 0);
+         print_string("Current top of stack: ");
+         print_hex((uint16_t)memBegin->threads[1].stackPointer);
+         set_cursor(19, 0);
+         print_string("Stack base: ");
+         print_hex((uint16_t)&memBegin->threads[1].stackBase);
+         set_cursor(20, 0);
+         print_string("Stack end: ");
+         print_hex((uint16_t)&memBegin->threads[1].stackEnd);
+
       }
    }
 }//end stayHere
