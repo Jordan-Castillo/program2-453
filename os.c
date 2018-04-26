@@ -58,10 +58,8 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
 
 void os_init() {
    serial_init();
-   start_system_timer();
-   sei();
 
-   int blinkId = 1000;
+   int blinkId = 20;
    int stayId = 1;
    int curThread = 0;
 
@@ -71,6 +69,11 @@ void os_init() {
    create_thread("blink", (uint16_t) blink, &blinkId, 200);
    create_thread("stay", (uint16_t) stayHere, &stayId, 200);
    //first context_switch() call
+
+
+
+   start_system_timer();
+   sei();
    context_switch((uint16_t*)&memBegin -> threads[0].stackPointer,
     (uint16_t*)&dummyThread);
 
@@ -124,7 +127,7 @@ void start_system_timer() {
    //this is an address, move to Z
    //value in Z put in reg
 //old_sp = arg2 = r23(high), r22(low)
-//stackPointer = 0x5E (high) and 0x5D (low)
+//stackPointer = 0x005E (high) and 0x005D (low)
 /*
    now that this works for new_sp.. i need to implement:
    pop all registers of the current stack into the area
@@ -160,7 +163,7 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    save the current stack pointer into local registers...
    set the Z register to point to old_sp
    store the stack pointer values that we saved, into old_sp
-
+0x005E = 5E
 */
    asm volatile("ldi r31, 0x00");
    asm volatile("ldi r30, 0x5E");
