@@ -1,9 +1,11 @@
 #include <avr/io.h>
 #include <stdio.h>
 #include <util/delay.h>
-#include "globals.h"
 #include <assert.h>
+#include "globals.h"
+#include "os.h"
 
+extern system_t *memBegin;
 extern volatile int global;
 extern int numThreads;
 /*
@@ -88,6 +90,10 @@ char *giveInt(uint32_t val) {
  * and call print_string() with said string
  */
 void print_int(uint16_t val) {
+   if(val == 0){
+      write_byte(0x30);
+      return;
+   }
    char *c = giveInt(val);
    while(*c != '\0'){
       write_byte(*c);
@@ -224,6 +230,8 @@ void blink(uint16_t *rate) {
    uint8_t keyboardValue = 'o';
    int blinkRate = (int)*rate;
    while(1){
+      set_cursor(10,10);
+      print_int(blinkRate);
       keyboardValue = read_byte();
       lightOn();
       delay_ms(blinkRate);
@@ -250,6 +258,7 @@ void clear_screen(void) {
 void stayHere(void) {
    int prevGlobal = global;
    int i = 0;
+   uint16_t temp;
    while(1){
       if(prevGlobal < (global - 100)) { //only update screen if 1s past
          prevGlobal = global;
@@ -261,10 +270,16 @@ void stayHere(void) {
          set_cursor(2, 0);
          print_string("Number of Threads: ");
          print_int(numThreads);
-
-         //for(i = 0; i < numThreads; i++){
-
-         //}
+         set_cursor(4, 0);
+         print_string("Thread Id: ");
+         print_int(0);
+         set_cursor(5, 0);
+         print_string("Thread name: ");
+         print_string(memBegin->threads[0].tName);
+         set_cursor(6, 0);
+         print_string("Thread PC: ");
+         temp = (uint16_t)&(memBegin->threads[0].stackPointer);
+         print_hex(temp);
       }
    }
 }//end stayHere
