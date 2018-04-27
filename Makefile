@@ -14,6 +14,11 @@ main: main.c serial.c os.c
 	avr-objcopy -O ihex main.elf main.hex
 	avr-size main.elf
 
+program2: program2.c serial.c os.c
+	avr-gcc -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o program2.elf program2.c serial.c os.c
+	avr-objcopy -O ihex program2.elf program2.hex
+	avr-size program2.elf
+
 blink: blink.c serial.c os.c
 	avr-gcc -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o main.elf blink.c serial.c os.c
 	avr-objcopy -O ihex main.elf main.hex

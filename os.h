@@ -5,6 +5,8 @@
 
 void start_system_timer();
 void os_init();
+void os_start();
+void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size);
 
 //16 bytes
 typedef struct thread_t {

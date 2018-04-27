@@ -15,7 +15,7 @@ __attribute__((naked)) void thread_start(void);
 
 /******************************************************************************
  * Function:  create_thread
- * --------------------
+ * ------------------------
  * Desc: Initializes stack space for new threads. Managing tasks such as setting
  *       setting the correct stack pointer, storing the address of the
  *       functions to be threaded, allocating memory for the stack and
@@ -89,24 +89,26 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
 void os_init() {
    serial_init();
 
-   int blinkId = 20;
-   int stayId = 1;
    int curThread = 0;
-
    dummyThread = (thread_t*) malloc(sizeof(thread_t));
    memBegin = (system_t*) malloc(sizeof(system_t));
    numThreads = 0;
-   create_thread("blink", (uint16_t) blink, &blinkId, 200);
-   create_thread("stay", (uint16_t) stayHere, &stayId, 200);
-   //first context_switch() call
 
 
+   // start_system_timer();
+   // sei();
+   // context_switch((uint16_t*)&memBegin -> threads[0].stackPointer,
+   //  (uint16_t*)&dummyThread);
+   //
+   return;
+}
 
+void os_start() {
    start_system_timer();
    sei();
+   // first call to context_switch()
    context_switch((uint16_t*)&memBegin -> threads[0].stackPointer,
     (uint16_t*)&dummyThread);
-
    return;
 }
 
