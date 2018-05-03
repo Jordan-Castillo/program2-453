@@ -1,7 +1,3 @@
-#include <avr/io.h>
-#include <stdio.h>
-#include <util/delay.h>
-#include <assert.h>
 #include "globals.h"
 #include "os.h"
 
@@ -255,15 +251,73 @@ void clear_screen(void) {
    write_byte(0x4A); // J
 }
 
+void nada(void){
+   while(1){
+      //do nothing
+   }
+}
+
+void printStats(void){
+   //start at row 1, for reasons I dont want to explain
+   uint8_t row = 4, i = 0;
+
+   while(1){
+      if(global < 10){  //garbage prints immediately, this cleans that up
+         clear_screen();
+      }
+      row = 4;
+      //clear_screen();
+      set_cursor(0, 0);
+      set_color(YELLOW);
+      print_string("Timer: ");
+      print_int32((global/100));
+      print_string("                             ");
+      set_cursor(2, 0);
+      print_string("Number of Threads: ");
+      print_int(numThreads);
+      for(int i = 0; i < numThreads; i++){ //print stats of each thread
+         set_color(GREEN);
+         set_cursor(row++, 0);
+         print_string("Thread Id: ");
+         print_int(memBegin->threads[i].id);
+         set_cursor(row++, 0);
+         print_string("Thread name: ");
+         print_string(memBegin->threads[i].tName);
+         set_cursor(row++, 0);
+         print_string("Thread PC: ");
+         print_hex(memBegin->threads[i].PC);
+         set_cursor(row++, 0);
+         print_string("Stack Usage: ");
+         print_int((uint16_t)memBegin->threads[i].stackEnd -
+            (uint16_t)memBegin->threads[i].stackPointer);
+         print_string(" bytes   ");
+         set_cursor(row++, 0);
+         print_string("Stack Size: ");
+         print_int(memBegin->threads[i].stackSize);
+         print_string(" bytes   ");
+         set_cursor(row++, 0);
+         print_string("Current top of stack: ");
+         print_hex((uint16_t)memBegin->threads[i].stackPointer);
+         set_cursor(row++, 0);
+         print_string("Stack base: ");
+         print_hex((uint16_t)memBegin->threads[i].stackBase);
+         set_cursor(row++, 0);
+         print_string("Stack end: ");
+         print_hex((uint16_t)memBegin->threads[i].stackEnd);
+         row++;
+      }
+   }
+}
+
 void stayHere(void) {
    int prevGlobal = global;
    int i = 0;
    uint16_t temp;
+   clear_screen();
    while(1){
-      if(prevGlobal < (global - 100)) { //only update screen if 1s past
+   //   if(prevGlobal < (global - 10)) { //only update screen if 1s past
          prevGlobal = global;
          set_cursor(0, 0);
-         clear_screen();
          set_color(YELLOW);
          print_string("Timer: ");
          print_int32((global/100));
@@ -278,13 +332,12 @@ void stayHere(void) {
          print_string(memBegin->threads[0].tName);
          set_cursor(6, 0);
          print_string("Thread PC: ");
-         temp = (uint16_t)&(memBegin->threads[0].stackPointer);
+         temp = (uint16_t)blink;
          print_hex(temp);
-         // not working
          set_cursor(7, 0);
          print_string("Stack Usage: ");
-         print_int((uint16_t)memBegin->threads[1].stackPointer -
-                     (uint16_t)memBegin->threads[1].stackEnd);
+         print_int((uint16_t)memBegin->threads[0].stackEnd -
+            (uint16_t)memBegin->threads[0].stackPointer);
          print_string(" bytes");
          set_cursor(8, 0);
          print_string("Stack Size: ");
@@ -310,13 +363,13 @@ void stayHere(void) {
          print_string(memBegin->threads[1].tName);
          set_cursor(15, 0);
          print_string("Thread PC: ");
-         temp = (uint16_t)&(memBegin->threads[1].stackPointer);
+         temp = (uint16_t)stayHere;
          print_hex(temp);
          // not working
          set_cursor(16, 0);
          print_string("Stack Usage: ");
-         print_int((uint16_t)memBegin->threads[1].stackPointer -
-                     (uint16_t)memBegin->threads[1].stackEnd);
+         print_int((uint16_t)memBegin->threads[1].stackEnd -
+            (uint16_t)memBegin->threads[1].stackPointer);
          print_string(" bytes");
          set_cursor(17, 0);
          print_string("Stack Size: ");
@@ -327,11 +380,11 @@ void stayHere(void) {
          print_hex((uint16_t)memBegin->threads[1].stackPointer);
          set_cursor(19, 0);
          print_string("Stack base: ");
-         print_hex((uint16_t)&memBegin->threads[1].stackBase);
+         print_hex((uint16_t)memBegin->threads[1].stackBase);
          set_cursor(20, 0);
          print_string("Stack end: ");
-         print_hex((uint16_t)&memBegin->threads[1].stackEnd);
+         print_hex((uint16_t)memBegin->threads[1].stackEnd);
 
-      }
+   //   }//if statement end
    }
 }//end stayHere

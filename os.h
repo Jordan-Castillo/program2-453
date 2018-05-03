@@ -1,17 +1,27 @@
+/*
+   CPE 453 - Dr. Seng
+   Program 2 - Multi-threading
+   Team: Jordan Castillo, Luis Trujillo
+*/
+
 #ifndef OS_H
 #define OS_H
 
 #include <stdint.h>
-
+#include "synchro.h"
+void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size);
 void start_system_timer();
 void os_init();
+void os_start();
 
 //16 bytes
 typedef struct thread_t {
    uint8_t id;
+   enum state curState;
    void *stackPointer;
    char tName[11];
    uint16_t stackSize;
+   uint16_t PC;
    void *stackBase;
    void *stackEnd;
    void *stackTop;

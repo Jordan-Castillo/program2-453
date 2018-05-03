@@ -2,7 +2,10 @@
 
 #ifndef GLOBALS_H
 #define GLOBALS_H
-//#include <stdio.h>
+
+#include <avr/io.h>
+#include <util/delay.h>
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +22,8 @@
 #define WHITE 0x37
 
 
+void nada(void);
+void printStats(void);
 void stayHere(void);
 void lightOn(void);
 void lightOff(void);

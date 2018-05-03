@@ -33,7 +33,7 @@ __attribute__((naked)) void thread_start(void);
 void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size) {
    void *memAddr = malloc(stack_size);
    memBegin -> threads[numThreads].stackBase = memAddr;
-   memBegin -> threads[numThreads].stackEnd = memAddr + sizeof(stack_size);
+   memBegin -> threads[numThreads].stackEnd = memAddr + stack_size;
 
    //int *id = (int*)args;
    regs_context_switch *ptr;
@@ -69,6 +69,7 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
    memBegin -> systemTime = 0;
    memBegin -> runningThread = 0;
    memBegin -> threads[numThreads].id = numThreads;
+   memBegin -> threads[numThreads].PC = address; 
    //memBegin -> threads[numThreads].tName = name;
    memcpy(memBegin->threads[numThreads].tName, name, strlen(name) + 1);
    memBegin -> threads[numThreads].stackSize = stack_size;
@@ -88,27 +89,20 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
  *****************************************************************************/
 void os_init() {
    serial_init();
-
-   int blinkId = 20;
-   int stayId = 1;
    int curThread = 0;
 
    dummyThread = (thread_t*) malloc(sizeof(thread_t));
    memBegin = (system_t*) malloc(sizeof(system_t));
    numThreads = 0;
-   create_thread("blink", (uint16_t) blink, &blinkId, 200);
-   create_thread("stay", (uint16_t) stayHere, &stayId, 200);
-   //first context_switch() call
-
-
-
+   return;
+}
+void os_start(void){
    start_system_timer();
    sei();
    context_switch((uint16_t*)&memBegin -> threads[0].stackPointer,
-    (uint16_t*)&dummyThread);
-
-   return;
+   (uint16_t*)&dummyThread);
 }
+
 
 /******************************************************************************
  * Function:  get_next_thread
@@ -284,9 +278,6 @@ __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp) {
    asm volatile("pop r4");
    asm volatile("pop r3");
    asm volatile("pop r2");
-   //asm volatile("pop eind");
-   //asm volatile("pop pch");
-   //asm volatile("pop pcl");
    asm volatile("RET");
 }
 
