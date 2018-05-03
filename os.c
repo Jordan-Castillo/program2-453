@@ -69,7 +69,7 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
    memBegin -> systemTime = 0;
    memBegin -> runningThread = 0;
    memBegin -> threads[numThreads].id = numThreads;
-   memBegin -> threads[numThreads].PC = address; 
+   memBegin -> threads[numThreads].PC = address;
    //memBegin -> threads[numThreads].tName = name;
    memcpy(memBegin->threads[numThreads].tName, name, strlen(name) + 1);
    memBegin -> threads[numThreads].stackSize = stack_size;
@@ -93,7 +93,7 @@ void os_init() {
 
    dummyThread = (thread_t*) malloc(sizeof(thread_t));
    memBegin = (system_t*) malloc(sizeof(system_t));
-   numThreads = 0;
+   numThreads = 1;
    return;
 }
 void os_start(void){

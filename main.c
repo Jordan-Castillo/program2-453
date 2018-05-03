@@ -16,5 +16,8 @@ int main(void) {
    create_thread("stats", (uint16_t) display_stats, &topId, 200);
    //create_thread("nada", (uint16_t) nada, &bottomId, 200);
    os_start();
+   while(1){
+      
+   }
    return 0;
 }

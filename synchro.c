@@ -44,7 +44,7 @@ void display_stats(void){
    uint8_t row = 4, i = 0;
 
    while(1){
-      if(global < 10){  //garbage prints immediately, this cleans that up
+      if(global < 2){  //garbage prints immediately, this cleans that up
          clear_screen();
       }
       row = 4;
