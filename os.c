@@ -85,7 +85,7 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
  *       to continuously swaps between each other.
  *
  * Parameter:
- *    N/A
+ *    N/A 
  *****************************************************************************/
 void os_init() {
    serial_init();
