@@ -274,8 +274,8 @@ void printStats(void){
       print_string("                             ");
       set_cursor(2, 0);
       print_string("Number of Threads: ");
-      print_int(numThreads);
-      for(int i = 0; i < numThreads; i++){ //print stats of each thread
+      print_int(memBegin -> numThreads);
+      for(int i = 0; i < memBegin -> numThreads; i++){ //print stats of each thread
          set_color(GREEN);
          set_cursor(row++, 0);
          print_string("Thread Id: ");
@@ -308,83 +308,3 @@ void printStats(void){
       }
    }
 }
-
-void stayHere(void) {
-   int prevGlobal = global;
-   int i = 0;
-   uint16_t temp;
-   clear_screen();
-   while(1){
-   //   if(prevGlobal < (global - 10)) { //only update screen if 1s past
-         prevGlobal = global;
-         set_cursor(0, 0);
-         set_color(YELLOW);
-         print_string("Timer: ");
-         print_int32((global/100));
-         set_cursor(2, 0);
-         print_string("Number of Threads: ");
-         print_int(numThreads);
-         set_cursor(4, 0);
-         print_string("Thread Id: ");
-         print_int(0);
-         set_cursor(5, 0);
-         print_string("Thread name: ");
-         print_string(memBegin->threads[0].tName);
-         set_cursor(6, 0);
-         print_string("Thread PC: ");
-         temp = (uint16_t)blink;
-         print_hex(temp);
-         set_cursor(7, 0);
-         print_string("Stack Usage: ");
-         print_int((uint16_t)memBegin->threads[0].stackEnd -
-            (uint16_t)memBegin->threads[0].stackPointer);
-         print_string(" bytes");
-         set_cursor(8, 0);
-         print_string("Stack Size: ");
-         print_int(memBegin->threads[0].stackSize);
-         print_string(" bytes");
-         set_cursor(9, 0);
-         print_string("Current top of stack: ");
-         print_hex((uint16_t)memBegin->threads[0].stackPointer);
-         set_cursor(10, 0);
-         print_string("Stack base: ");
-         print_hex((uint16_t)memBegin->threads[0].stackBase);
-         set_cursor(11, 0);
-         print_string("Stack end: ");
-         print_hex((uint16_t)memBegin->threads[0].stackEnd);
-
-         // ---------------------- Second thread -------------------------------
-         set_color(CYAN);
-         set_cursor(13, 0);
-         print_string("Thread Id: ");
-         print_int(1);
-         set_cursor(14, 0);
-         print_string("Thread name: ");
-         print_string(memBegin->threads[1].tName);
-         set_cursor(15, 0);
-         print_string("Thread PC: ");
-         temp = (uint16_t)stayHere;
-         print_hex(temp);
-         // not working
-         set_cursor(16, 0);
-         print_string("Stack Usage: ");
-         print_int((uint16_t)memBegin->threads[1].stackEnd -
-            (uint16_t)memBegin->threads[1].stackPointer);
-         print_string(" bytes");
-         set_cursor(17, 0);
-         print_string("Stack Size: ");
-         print_int(memBegin->threads[1].stackSize);
-         print_string(" bytes");
-         set_cursor(18, 0);
-         print_string("Current top of stack: ");
-         print_hex((uint16_t)memBegin->threads[1].stackPointer);
-         set_cursor(19, 0);
-         print_string("Stack base: ");
-         print_hex((uint16_t)memBegin->threads[1].stackBase);
-         set_cursor(20, 0);
-         print_string("Stack end: ");
-         print_hex((uint16_t)memBegin->threads[1].stackEnd);
-
-   //   }//if statement end
-   }
-}//end stayHere
