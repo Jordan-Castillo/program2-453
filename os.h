@@ -17,6 +17,7 @@ void os_start();
 //16 bytes
 typedef struct thread_t {
    uint8_t id;
+   uint8_t ticks;
    enum state curState;
    void *stackPointer;
    char tName[11];

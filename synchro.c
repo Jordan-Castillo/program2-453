@@ -16,9 +16,10 @@ void blink_V2(void){
 
 }
 /*
-
+   Just the function for the consumer animation.
+   call it once to iterate the animation once
 */
-void consumer(void){
+void consumer_anim(void){
    uint8_t row = 2, col = 20;
    uint8_t setColor = CYAN, base = WHITE;
    int frame = 0;
@@ -26,8 +27,8 @@ void consumer(void){
       set_color(base);
       row = 2;
       col = 0;
-      if(global < 10)
-         clear_screen();
+      //if(global < 10)
+      //   clear_screen();
       if(frame >= 0 && frame <= 10){
          set_cursor(row++, col);
          print_string("               ");
@@ -49,7 +50,7 @@ void consumer(void){
       }
       else if(frame > 10 && frame <= 20){
          set_cursor(row++, col);
-         print_string("PRODUCING");
+         print_string("CONSUMING");
          set_cursor(row++, col);
          print_string("   #   ");
          set_cursor(row++, col);
@@ -107,7 +108,7 @@ void consumer(void){
       }
       else if(frame > 30 && frame <= 40){
          set_cursor(row++, col);
-         print_string("PRODUCING");
+         print_string("CONSUMING");
          set_cursor(row++, col);
          print_string("   #   ");
          set_cursor(row++, col);
@@ -197,22 +198,50 @@ void consumer(void){
          print_string("   0   ");
          frame++;
       }
+      else if(frame == 51){
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         frame++;
+      }
       else
-         frame = 0;
+         return;
    }
-   return;
 }
 /*
 
 */
-void producer(void){
+void consumer(void){
+   int i = 5;
+   for (i = 0; i < 5; i++)
+      consumer_anim();
+   return;
+}
+
+
+/*
+
+*/
+void producer_anim(void){
    uint8_t row = 2, col = 0;
    int frame = 0;
    while(1){
       row = 2;
       col = 0;
-      if(global < 10)
-         clear_screen();
+   //this might not be necessary in the final product, but just incase saved here
+   //   if(global < 10)
+   //      clear_screen();
       if(frame >= 0 && frame <= 10){
          set_cursor(row++, col);
          print_string("   #   ");
@@ -298,9 +327,38 @@ void producer(void){
          print_string("   0   ");
          frame++;
       }
+      else if(frame == 51){
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         set_cursor(row++, col);
+         print_string("        ");
+         frame++;
+      }
       else
-         frame = 0;
+         return;
    }
+   return;
+}
+
+/*
+
+*/
+void producer(void){
+   int i = 5;
+   for (i = 0; i < 5; i++)
+      producer_anim();
    return;
 }
 /*
