@@ -19,14 +19,288 @@ void blink_V2(void){
 
 */
 void consumer(void){
-
+   uint8_t row = 2, col = 20;
+   uint8_t setColor = CYAN, base = WHITE;
+   int frame = 0;
+   while(1){
+      set_color(base);
+      row = 2;
+      col = 0;
+      if(global < 10)
+         clear_screen();
+      if(frame >= 0 && frame <= 10){
+         set_cursor(row++, col);
+         print_string("               ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("#######");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 10 && frame <= 20){
+         set_cursor(row++, col);
+         print_string("PRODUCING");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("###");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("###");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 20 && frame <= 30){
+         set_cursor(row++, col);
+         print_string("               ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" ##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##  ");
+         set_cursor(row++, col);
+         print_string("##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##");
+         set_cursor(row++, col);
+         print_string(" ##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 30 && frame <= 40){
+         set_cursor(row++, col);
+         print_string("PRODUCING");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string(" #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("###");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_cursor(row++, col);
+         print_string(" #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string("  #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 40 && frame <= 50){
+         set_cursor(row++, col);
+         print_string("                ");
+         set_cursor(row++, col);
+         set_color(setColor);
+         print_string("   0   ");
+         set_cursor(row++, col);
+         set_color(setColor);
+         print_string("  0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0  ");
+         set_cursor(row++, col);
+         print_string(" 0");
+         set_color(base);
+         print_string("###");
+         set_color(setColor);
+         print_string("0  ");
+         set_cursor(row++, col);
+         print_string("0");
+         set_color(base);
+         print_string("#####");
+         set_color(setColor);
+         print_string("0");
+         set_cursor(row++, col);
+         print_string(" 0");
+         set_color(base);
+         print_string("###");
+         set_color(setColor);
+         print_string("0  ");
+         set_cursor(row++, col);
+         print_string("  0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0  ");
+         set_cursor(row++, col);
+         print_string("   0   ");
+         frame++;
+      }
+      else
+         frame = 0;
+   }
    return;
 }
 /*
 
 */
 void producer(void){
-
+   uint8_t row = 2, col = 0;
+   int frame = 0;
+   while(1){
+      row = 2;
+      col = 0;
+      if(global < 10)
+         clear_screen();
+      if(frame >= 0 && frame <= 10){
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("#######");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 10 && frame <= 20){
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("###0###");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 20 && frame <= 30){
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" ##0##  ");
+         set_cursor(row++, col);
+         print_string("##0#0##");
+         set_cursor(row++, col);
+         print_string(" ##0##  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 30 && frame <= 40){
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  #0#  ");
+         set_cursor(row++, col);
+         print_string(" #0#0#  ");
+         set_cursor(row++, col);
+         print_string("#0###0#");
+         set_cursor(row++, col);
+         print_string(" #0#0#  ");
+         set_cursor(row++, col);
+         print_string("  #0#  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 40 && frame <= 50){
+         set_cursor(row++, col);
+         print_string("   0   ");
+         set_cursor(row++, col);
+         print_string("  0#0  ");
+         set_cursor(row++, col);
+         print_string(" 0###0  ");
+         set_cursor(row++, col);
+         print_string("0#####0");
+         set_cursor(row++, col);
+         print_string(" 0###0  ");
+         set_cursor(row++, col);
+         print_string("  0#0  ");
+         set_cursor(row++, col);
+         print_string("   0   ");
+         frame++;
+      }
+      else
+         frame = 0;
+   }
    return;
 }
 /*
@@ -41,7 +315,7 @@ void display_bounded_buffer(void){
 */
 void display_stats(void){
    //start at row 1, for reasons I dont want to explain
-   uint8_t row = 4, i = 0;
+   uint8_t row = 4, col = 0, i = 0;
 
    while(1){
       if(global < 2){  //garbage prints immediately, this cleans that up
@@ -56,34 +330,43 @@ void display_stats(void){
       print_string("                             ");
       set_cursor(2, 0);
       print_string("Number of Threads: ");
-      print_int(numThreads);
-      for(int i = 0; i < numThreads; i++){ //print stats of each thread
+      print_int(memBegin -> numThreads);
+      for(int i = 0; i < memBegin -> numThreads; i++){ //print stats of each thread
+         if(i < 3){
+            col = (i % 3) * 30;
+            row = 4;
+         }
+         else if (i > 2){
+            col = (i % 3) * 30;
+            row = 15;
+         }
+
          set_color(GREEN);
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Thread Id: ");
          print_int(memBegin->threads[i].id);
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Thread name: ");
          print_string(memBegin->threads[i].tName);
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Thread PC: ");
          print_hex(memBegin->threads[i].PC);
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Stack Usage: ");
          print_int((uint16_t)memBegin->threads[i].stackEnd -
             (uint16_t)memBegin->threads[i].stackPointer);
          print_string(" bytes   ");
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Stack Size: ");
          print_int(memBegin->threads[i].stackSize);
          print_string(" bytes   ");
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Current top of stack: ");
          print_hex((uint16_t)memBegin->threads[i].stackPointer);
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Stack base: ");
          print_hex((uint16_t)memBegin->threads[i].stackBase);
-         set_cursor(row++, 0);
+         set_cursor(row++, col);
          print_string("Stack end: ");
          print_hex((uint16_t)memBegin->threads[i].stackEnd);
          row++;

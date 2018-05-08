@@ -7,8 +7,8 @@ extern volatile int global;
 //memBegin holds the address of system_t
 system_t *memBegin;
 thread_t *dummyThread;
-uint8_t curThread;
-int numThreads;
+//uint8_t curThread;
+//int numThreads;
 
 __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp);
 __attribute__((naked)) void thread_start(void);
@@ -32,13 +32,13 @@ __attribute__((naked)) void thread_start(void);
 //i think we save this pointer where the memory is saved, somewhere....
 void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size) {
    void *memAddr = malloc(stack_size);
-   memBegin -> threads[numThreads].stackBase = memAddr;
-   memBegin -> threads[numThreads].stackEnd = memAddr + stack_size;
+   memBegin -> threads[memBegin -> numThreads].stackBase = memAddr;
+   memBegin -> threads[memBegin -> numThreads].stackEnd = memAddr + stack_size;
 
    //int *id = (int*)args;
    regs_context_switch *ptr;
    memAddr = memAddr + (stack_size - sizeof(regs_context_switch));
-   memBegin -> threads[numThreads].stackTop = memAddr;
+   memBegin -> threads[memBegin -> numThreads].stackTop = memAddr;
 
    ptr = (regs_context_switch*) memAddr;
    ptr->padding = 0;
@@ -66,15 +66,13 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
    ptr->pch = ((uint16_t) thread_start & 0xFF00) >> 8;
    ptr->pcl = ((uint16_t) thread_start & 0x00FF);
 
-   memBegin -> systemTime = 0;
-   memBegin -> runningThread = 0;
-   memBegin -> threads[numThreads].id = numThreads;
-   memBegin -> threads[numThreads].PC = address;
+   memBegin -> threads[memBegin -> numThreads].id = memBegin -> numThreads;
+   memBegin -> threads[memBegin -> numThreads].PC = address;
    //memBegin -> threads[numThreads].tName = name;
-   memcpy(memBegin->threads[numThreads].tName, name, strlen(name) + 1);
-   memBegin -> threads[numThreads].stackSize = stack_size;
-   memBegin -> threads[numThreads].stackPointer = ptr;
-   numThreads++;
+   memcpy(memBegin->threads[memBegin -> numThreads].tName, name, strlen(name) + 1);
+   memBegin -> threads[memBegin -> numThreads].stackSize = stack_size;
+   memBegin -> threads[memBegin -> numThreads].stackPointer = ptr;
+   memBegin -> numThreads++;
 }
 
 /******************************************************************************
@@ -85,22 +83,44 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
  *       to continuously swaps between each other.
  *
  * Parameter:
- *    N/A 
+ *    N/A
  *****************************************************************************/
 void os_init() {
    serial_init();
-   int curThread = 0;
-
-   dummyThread = (thread_t*) malloc(sizeof(thread_t));
+   //curThread = 1;
+   //dummyThread = (thread_t*) malloc(sizeof(thread_t));
    memBegin = (system_t*) malloc(sizeof(system_t));
-   numThreads = 1;
+   memBegin -> runningThread = 1;
+   memBegin -> numThreads = 1;
+   memBegin -> systemTime = 0;
    return;
 }
 void os_start(void){
+   char temp[5] = "main";
    start_system_timer();
    sei();
-   context_switch((uint16_t*)&memBegin -> threads[0].stackPointer,
-   (uint16_t*)&dummyThread);
+   //right before switching contexts, we need to setup the main() thread
+   //since it is never called with create_thread, we do that work here
+
+
+   memBegin -> threads[0].stackBase = (void*) 0x0000;
+   memBegin -> threads[0].stackEnd = (void*)0x0000; //+ 0x00C8;
+   memBegin -> threads[0].stackTop = (void*) 0x0000; //+ (0x00C8 - sizeof(regs_context_switch));
+
+   memBegin -> threads[0].id = 0;
+
+   memBegin -> threads[0].PC = (uint16_t) main;
+   memcpy(memBegin->threads[0].tName, temp, 5);
+   memBegin -> threads[0].stackSize = 0;
+   
+
+
+
+   context_switch((uint16_t*)&memBegin -> threads[1].stackPointer,
+   (uint16_t*)&memBegin -> threads[0].stackPointer);
+
+   //context_switch((uint16_t*)&memBegin -> threads[0].stackPointer,
+   //(uint16_t*)&dummyThread);
 }
 
 
@@ -114,11 +134,15 @@ void os_start(void){
  *****************************************************************************/
 
 uint8_t get_next_thread(void) {
-   if(curThread < (numThreads - 1))
-      curThread++;
+   //print_string("Start value: ");
+   //print_int(memBegin -> runningThread);
+   if((memBegin -> runningThread) < ((memBegin -> numThreads) - 1))
+      memBegin -> runningThread++;
    else
-      curThread = 0;
-   return curThread;
+      memBegin -> runningThread = 0;
+   //print_string("End value: ");
+   //print_int(memBegin -> runningThread);
+   return memBegin -> runningThread;
 }
 
 /******************************************************************************
@@ -134,7 +158,7 @@ uint8_t get_next_thread(void) {
 //This interrupt routine is automatically run every 10 milliseconds
 ISR(TIMER0_COMPA_vect) {
    void *new_sp, *old_sp;
-   uint8_t curNode = curThread;
+   uint8_t curNode = memBegin -> runningThread;
    uint8_t nextThread = get_next_thread();
    global++;
 

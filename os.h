@@ -31,6 +31,7 @@ typedef struct thread_t {
 typedef struct system_t {
    thread_t threads[8];
    uint8_t runningThread;
+   uint8_t numThreads;
    uint32_t systemTime;
    char buffer[11]; //necessary to make divisible by 16
 }system_t;

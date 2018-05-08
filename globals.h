@@ -21,7 +21,7 @@
 #define CYAN 0x36
 #define WHITE 0x37
 
-
+int main(void);
 void nada(void);
 void printStats(void);
 void stayHere(void);
