@@ -74,6 +74,34 @@ void mutex_unlock(struct mutex_t* m){
 void thread_sleep(uint16_t ticks){
 
 }
+
+void seminit(struct semaphore_t* s, int8_t value){
+   *s = (struct semaphore_t*)malloc(sizeof(semaphore_t));
+   s->count = value;
+}
+
+void sem_wait(struct semaphore_t* s){
+   cli();
+   s->value--;
+   if (s->value < 0) {
+      // block();
+   }
+   sli();
+}
+
+void sem_signal(struct semaphore_t* s){
+   cli();
+   s->value++;
+   if (s->value <= 0) {
+      // wakeup(P);
+   }
+   sli();
+}
+
+void sem_signal_swap(struct semaphore_t* s){
+
+}
+
 void blink_V2(void){
 
 }
