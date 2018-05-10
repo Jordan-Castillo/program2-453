@@ -4,9 +4,11 @@
 #include <avr/interrupt.h>
 
 extern system_t *memBegin;
+extern semaphore_t *printSemaphore;
 extern struct mutex_t *printLock;
 extern volatile int global;
 extern int numThreads;
+int buffer[10];
 /*
    put the thread to sleep for the specified number of ticks...
    count global timer maybe?
@@ -35,6 +37,7 @@ void mutex_init(struct mutex_t* m)
    m -> lock = 1;
    m -> waiting = 0;
 }
+
 void mutex_lock(struct mutex_t* m){
    cli();
    if(m -> lock != 1){ //lock unavailable
@@ -45,7 +48,8 @@ void mutex_lock(struct mutex_t* m){
    }
    else
       m -> lock = 0;
-
+   // print_int(memBegin->threads[].id);
+   // sleep(3);
    sei();
 }
 /*
@@ -75,15 +79,17 @@ void thread_sleep(uint16_t ticks){
 
 }
 
-void seminit(struct semaphore_t* s, int8_t value){
-   s = (struct semaphore_t*)malloc(sizeof(semaphore_t));
-   s->value = value;
+void sem_init(struct semaphore_t* s, int8_t value){
+   s->empty = value;
+   s->full = 0;
 }
 
 void sem_wait(struct semaphore_t* s){
    cli();
-   s->value--;
-   if (s->value < 0) {
+   s->empty--;
+   s->full++;
+
+   if (s->empty < 0) {
       // block();
    }
    sei();
@@ -91,8 +97,10 @@ void sem_wait(struct semaphore_t* s){
 
 void sem_signal(struct semaphore_t* s){
    cli();
-   s->value++;
-   if (s->value <= 0) {
+   s->empty++;
+   s->full--;
+
+   if (s->empty <= 0) {
       // wakeup(P);
    }
    sei();
@@ -101,6 +109,47 @@ void sem_signal(struct semaphore_t* s){
 void sem_signal_swap(struct semaphore_t* s){
 
 }
+
+void producer(void){
+   int i = 5;
+   for (i = 0; i < 5; i++)
+      producer_anim();
+
+   while(1){
+      // wait until empty > 0 and then decrement 'empty'
+      sem_wait(printSemaphore);
+      // acquire lock
+      mutex_lock(printLock);  // wait(mutex_lock);
+
+      /* perform the insert operation in a slot */
+      addToBuffer();
+
+      // release lock
+      mutex_unlock(printLock);// sem_signal(mutex_unlock);
+      // increment 'full'
+      sem_signal(printSemaphore);
+   }
+   return;
+}
+
+void consumer(void){
+   consumer_anim();
+
+   while(1){
+      sem_wait(printSemaphore);
+
+      mutex_lock(printLock);
+
+      /* perform the insert operation in a slot */
+      removeFromBuffer();
+
+      mutex_unlock(printLock);
+
+      sem_signal(printSemaphore);
+   }
+}
+
+
 
 void blink_V2(void){
 
@@ -312,13 +361,6 @@ void consumer_anim(void){
 /*
 
 */
-void consumer(void){
-   while(1){
-      mutex_lock(printLock);
-      consumer_anim();
-      mutex_unlock(printLock);
-   }
-}
 
 
 /*
@@ -330,9 +372,9 @@ void producer_anim(void){
    while(1){
       row = 2;
       col = 0;
-   //this might not be necessary in the final product, but just incase saved here
-   //   if(global < 10)
-   //      clear_screen();
+      //this might not be necessary in the final product, but just incase saved here
+      //   if(global < 10)
+      //      clear_screen();
       if(frame >= 0 && frame <= 10){
          set_cursor(row++, col);
          print_string("   #   ");
@@ -446,16 +488,8 @@ void producer_anim(void){
 /*
 
 */
-void producer(void){
-   int i = 5;
-   for (i = 0; i < 5; i++)
-      producer_anim();
-   return;
-}
-/*
-
-*/
-void display_bounded_buffer(void){
+void display_bounded_buffer(semaphore_t* s){
+   print_int(s->empty);
 
    return;
 }

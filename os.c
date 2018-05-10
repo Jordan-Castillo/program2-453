@@ -4,11 +4,15 @@
 #include "os.h"
 #include "synchro.h"
 #include <stdint.h>
+#include <unistd.h>
+
 extern volatile int global;
 //memBegin holds the address of system_t
 system_t *memBegin;
+semaphore_t *printSemaphore;
 thread_t *dummyThread;
 struct mutex_t *printLock;
+
 //uint8_t curThread;
 //int numThreads;
 
@@ -18,7 +22,7 @@ uint8_t get_next_thread(void);
 
 /******************************************************************************
  * Function:  create_thread
- * --------------------
+ * ------------------------
  * Desc: Initializes stack space for new threads. Managing tasks such as setting
  *       setting the correct stack pointer, storing the address of the
  *       functions to be threaded, allocating memory for the stack and
@@ -95,8 +99,12 @@ void yield(void){
    sei(); //must commence interrupts since we stopped them
    context_switch((uint16_t*)&memBegin -> threads[next].stackPointer,
     (uint16_t*)&memBegin -> threads[curThread].stackPointer);
-
+   print_int(memBegin->threads[next].id);
+   // sleep(20);
+   cli();
 }
+
+
 /******************************************************************************
  * Function:  os_init
  * ------------------
@@ -116,7 +124,8 @@ void os_init() {
    memBegin -> numThreads = 1;
    memBegin -> systemTime = 0;
    mutex_init(printLock);
-
+   printSemaphore = (struct semaphore_t*)malloc(sizeof(semaphore_t));
+   sem_init(printSemaphore, 10);
 
    return;
 }

@@ -5,7 +5,8 @@
 
 //Structures....
 typedef struct semaphore_t{
-   int value;
+   int full;
+   int empty;
 }semaphore_t;
 
 typedef struct mutex_t{
@@ -23,9 +24,15 @@ void display_stats(void);
 void blink_V2(void);
 void consumer(void);
 void producer(void);
-void display_bounded_buffer(void);
+void display_bounded_buffer(semaphore_t* s);
+void producer_anim(void);
+void addToBuffer(void);
+void removeFromBuffer(void);
+void consumer_anim();
 
-void seminit(struct semaphore_t* s, int8_t value);
+
+
+void sem_init(struct semaphore_t* s, int8_t value);
 void sem_wait(struct semaphore_t* s);
 void sem_signal(struct semaphore_t* s);
 void sem_signal_swap(struct semaphore_t* s);
