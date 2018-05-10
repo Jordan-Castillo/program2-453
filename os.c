@@ -8,7 +8,7 @@ extern volatile int global;
 //memBegin holds the address of system_t
 system_t *memBegin;
 thread_t *dummyThread;
-struct mutex_t *printLock;
+mutex_t *printLock;
 //uint8_t curThread;
 //int numThreads;
 
@@ -91,10 +91,12 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
 void yield(void){
    uint8_t curThread, next;
    curThread = memBegin -> runningThread;
+   memBegin -> threads[curThread].curState = THREAD_WAITING;
    next = get_next_thread();
-   sei(); //must commence interrupts since we stopped them
+   memBegin -> threads[next].curState = THREAD_RUNNING;
    context_switch((uint16_t*)&memBegin -> threads[next].stackPointer,
     (uint16_t*)&memBegin -> threads[curThread].stackPointer);
+    //sei(); //must commence interrupts since we stopped them
 
 }
 /******************************************************************************
@@ -115,8 +117,9 @@ void os_init() {
    memBegin -> runningThread = 1;
    memBegin -> numThreads = 1;
    memBegin -> systemTime = 0;
+   printLock = (mutex_t*)malloc(sizeof(mutex_t));
    mutex_init(printLock);
-
+   //print_int(printLock -> lock);
 
    return;
 }
@@ -148,12 +151,14 @@ void os_start(void){
    //(uint16_t*)&dummyThread);
 }
 
-uint8_t abcdefg(void){
-   uint8_t current = memBegin -> runningThread;
-   uint8_t dontReturn = current;
+uint8_t get_next_thread2(void){
+   uint8_t dontReturn = memBegin -> runningThread;
+   uint8_t current = ((dontReturn + 1) < (memBegin -> numThreads - 1)) ? dontReturn + 1 : 0;
    while(1){
-      if(current < memBegin -> numThreads)
-         ;
+      if(memBegin -> threads[current].curState == THREAD_READY){
+         return current;
+      }
+      current = ((current + 1) < (memBegin -> numThreads - 1)) ? current + 1 : 0;
    }
 }
 
@@ -186,6 +191,8 @@ uint8_t get_next_thread(void) {
    //if we arent already at the last thread
    if((memBegin -> runningThread) < ((memBegin -> numThreads) - 1)){
       memBegin -> runningThread++;
+
+      //memBegin -> runningThread++;
    }
    else{ //if we are at last thread
       memBegin -> runningThread = 0;
@@ -218,7 +225,9 @@ ISR(TIMER1_COMPA_vect) {
 ISR(TIMER0_COMPA_vect) {
    void *new_sp, *old_sp;
    uint8_t curNode = memBegin -> runningThread;
+   memBegin -> threads[curNode].curState = THREAD_READY;
    uint8_t nextThread = get_next_thread();
+   memBegin -> threads[nextThread].curState = THREAD_RUNNING;
    global++;
 
    //At the beginning of this ISR, the registers r0, r1, and r18-31 have

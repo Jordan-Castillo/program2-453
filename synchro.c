@@ -4,7 +4,7 @@
 #include <avr/interrupt.h>
 
 extern system_t *memBegin;
-extern struct mutex_t *printLock;
+extern mutex_t *printLock;
 extern volatile int global;
 extern int numThreads;
 /*
@@ -31,14 +31,18 @@ void printState(enum state curState){
 
 void mutex_init(struct mutex_t* m)
 {
-   m = (struct mutex_t*)malloc(sizeof(mutex_t));
+   //m = (mutex_t*)malloc(sizeof(mutex_t));
    m -> lock = 1;
    m -> waiting = 0;
+   //print_string("   here");
+   //print_int(m -> lock);
+   //print_string("here   ");
 }
 void mutex_lock(struct mutex_t* m){
    cli();
-   if(m -> lock != 1){ //lock unavailable
-      memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
+   if(m -> lock < 1){ //lock unavailable
+      //print_string("WHY");
+      //memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
       m -> waitList[m -> waiting++] = memBegin -> runningThread; //add to waitlist
          //with this implementation, we need to reorder the array in mutex_unlock
       yield();
@@ -441,7 +445,7 @@ void display_stats(void){
 
    while(1){
       mutex_lock(printLock); ///////FUUUUUUUUUUUU DOES THIS WORK?!?!
-      if(global < 2){  //garbage prints immediately, this cleans that up
+      if(global < 10){  //garbage prints immediately, this cleans that up
          clear_screen();
       }
       row = 4;

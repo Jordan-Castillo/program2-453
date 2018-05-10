@@ -4,7 +4,7 @@
 #include <avr/interrupt.h>
 
 volatile int global;
-
+extern mutex_t *printLock;
 int main(void) {
    global = 0;
    int blinkId = 20;
@@ -13,10 +13,10 @@ int main(void) {
    int stayId = 1;
    os_init();
    create_thread("blink", (uint16_t) blink, &blinkId, 200);
-      create_thread("stats", (uint16_t) display_stats, &topId, 200);
-      // create_thread("nada", (uint16_t) nada, &bottomId, 200);
-      // create_thread("nada", (uint16_t) nada, &bottomId, 200);
-      // create_thread("nada", (uint16_t) nada, &bottomId, 200);
+   create_thread("stats", (uint16_t) display_stats, &topId, 200);
+      create_thread("nada", (uint16_t) nada, &bottomId, 200);
+      create_thread("nada", (uint16_t) nada, &bottomId, 200);
+      create_thread("nada", (uint16_t) nada, &bottomId, 200);
    //    create_thread("producer", (uint16_t) producer, &bottomId, 200);
    //create_thread("consumer", (uint16_t) consumer, &bottomId, 200);
    os_start();
