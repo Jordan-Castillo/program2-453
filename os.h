@@ -20,7 +20,7 @@ typedef struct thread_t {
    uint8_t id;
    uint8_t ticks;
    uint32_t sched_count;
-   enum state curState;
+   volatile enum state curState;
    void *stackPointer;
    char tName[11];
    uint16_t stackSize;

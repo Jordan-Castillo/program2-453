@@ -7,10 +7,60 @@ extern system_t *memBegin;
 extern mutex_t *printLock;
 extern volatile int global;
 extern int numThreads;
-/*
-   put the thread to sleep for the specified number of ticks...
-   count global timer maybe?
-*/
+
+void printState(enum state curState);
+
+
+void printtt(void){
+   int col = 0, row = 2;
+   while(1){
+      col = 0;
+      row = 2;
+      mutex_lock(printLock);
+      // if(global < 10)
+      //    clear_screen();
+      set_cursor(row++, col);
+      print_string("thread name: ");
+      print_string(memBegin -> threads[1].tName);
+      set_cursor(row++, col);
+      print_string("thread state: ");
+      printState(memBegin -> threads[1].curState);
+      row++;
+      set_cursor(row++, col);
+      print_string("thread name: ");
+      print_string(memBegin -> threads[2].tName);
+      set_cursor(row++, col);
+      print_string("thread state: ");
+      printState(memBegin -> threads[2].curState);
+
+      row = 2;
+      col = 35;
+      set_cursor(row++, col);
+      print_string("waiting = ");
+      print_int(printLock -> waiting);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[0]);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[1]);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[2]);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[3]);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[4]);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[5]);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[6]);
+      set_cursor(row++, col);
+      print_int(printLock -> waitList[7]);
+      mutex_unlock(printLock);
+   }
+}
+void nothing(void){
+   mutex_lock(printLock);
+   mutex_unlock(printLock);
+}
 
 void printState(enum state curState){
    switch(curState){
@@ -34,6 +84,15 @@ void mutex_init(struct mutex_t* m)
    //m = (mutex_t*)malloc(sizeof(mutex_t));
    m -> lock = 1;
    m -> waiting = 0;
+   //m -> waitList = malloc(sizeof(int) * 8);
+   m -> waitList[0] = 0;
+   m -> waitList[1] = 0;
+   m -> waitList[2] = 0;
+   m -> waitList[3] = 0;
+   m -> waitList[4] = 0;
+   m -> waitList[5] = 0;
+   m -> waitList[6] = 0;
+   m -> waitList[7] = 0;
    //print_string("   here");
    //print_int(m -> lock);
    //print_string("here   ");
@@ -41,10 +100,10 @@ void mutex_init(struct mutex_t* m)
 void mutex_lock(struct mutex_t* m){
    cli();
    if(m -> lock < 1){ //lock unavailable
-      //print_string("WHY");
       //memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
       m -> waitList[m -> waiting++] = memBegin -> runningThread; //add to waitlist
          //with this implementation, we need to reorder the array in mutex_unlock
+      memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
       yield();
    }
    else
@@ -320,7 +379,7 @@ void consumer_anim(void){
 void consumer(void){
    while(1){
       mutex_lock(printLock);
-      consumer_anim();
+      //consumer_anim();
       mutex_unlock(printLock);
    }
 }
@@ -531,6 +590,16 @@ void display_stats(void){
          printState(memBegin -> threads[i].curState);
          row++;
       }
+      set_cursor(35, 35);
+      print_string("waitlist[0]: ");
+      print_int(printLock -> waitList[0]);
+      print_string("- lock: ");
+      print_int(printLock -> lock);
    mutex_unlock(printLock);
+      set_cursor(36, 35);
+      print_string("waitlist[0]post unlock: ");
+      print_int(printLock -> waitList[0]);
+      print_string("- lock: ");
+      print_int(printLock -> lock);
    }
 }

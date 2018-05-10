@@ -9,13 +9,18 @@ typedef struct semaphore_t{
 }semaphore_t;
 
 typedef struct mutex_t{
-   int lock;
-   int waitList[8];
-   int waiting;
+   int volatile lock;
+   //int* waitList;
+   int volatile waitList[8];
+   int volatile waiting;
 }mutex_t;
 
 
 //function constructors...
+void printtt(void);
+void nothing(void);
+
+
 void mutex_init(struct mutex_t* m);
 void mutex_lock(struct mutex_t* m);
 void mutex_unlock(struct mutex_t* m);

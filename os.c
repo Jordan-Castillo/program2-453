@@ -91,13 +91,14 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
 void yield(void){
    uint8_t curThread, next;
    curThread = memBegin -> runningThread;
-   memBegin -> threads[curThread].curState = THREAD_WAITING;
+
+   //memBegin -> threads[curThread].curState = THREAD_WAITING;
    next = get_next_thread();
    memBegin -> threads[next].curState = THREAD_RUNNING;
+
    context_switch((uint16_t*)&memBegin -> threads[next].stackPointer,
     (uint16_t*)&memBegin -> threads[curThread].stackPointer);
     //sei(); //must commence interrupts since we stopped them
-
 }
 /******************************************************************************
  * Function:  os_init
@@ -140,6 +141,7 @@ void os_start(void){
    memBegin -> threads[0].PC = (uint16_t) main;
    memcpy(memBegin->threads[0].tName, temp, 5);
    memBegin -> threads[0].stackSize = 0;
+   memBegin -> threads[0].curState = THREAD_READY;
 
 
 
@@ -155,7 +157,8 @@ uint8_t get_next_thread2(void){
    uint8_t dontReturn = memBegin -> runningThread;
    uint8_t current = ((dontReturn + 1) < (memBegin -> numThreads - 1)) ? dontReturn + 1 : 0;
    while(1){
-      if(memBegin -> threads[current].curState == THREAD_READY){
+      if(memBegin -> threads[current].curState == THREAD_READY && current != dontReturn){
+         memBegin -> runningThread = current;
          return current;
       }
       current = ((current + 1) < (memBegin -> numThreads - 1)) ? current + 1 : 0;

@@ -14,11 +14,11 @@ int main(void) {
    os_init();
    create_thread("blink", (uint16_t) blink, &blinkId, 200);
    create_thread("stats", (uint16_t) display_stats, &topId, 200);
-      create_thread("nada", (uint16_t) nada, &bottomId, 200);
-      create_thread("nada", (uint16_t) nada, &bottomId, 200);
-      create_thread("nada", (uint16_t) nada, &bottomId, 200);
-   //    create_thread("producer", (uint16_t) producer, &bottomId, 200);
-   //create_thread("consumer", (uint16_t) consumer, &bottomId, 200);
+      // create_thread("nada", (uint16_t) nada, &bottomId, 200);
+      // create_thread("nada", (uint16_t) nada, &bottomId, 200);
+      // create_thread("nada", (uint16_t) nada, &bottomId, 200);
+      // create_thread("producer", (uint16_t) producer, &bottomId, 200);
+   create_thread("consumer", (uint16_t) consumer, &bottomId, 200);
    os_start();
    sei();
    while(1){
