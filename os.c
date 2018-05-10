@@ -2,16 +2,19 @@
 #include <avr/interrupt.h>
 #include "globals.h"
 #include "os.h"
+#include "synchro.h"
 #include <stdint.h>
 extern volatile int global;
 //memBegin holds the address of system_t
 system_t *memBegin;
 thread_t *dummyThread;
+struct mutex_t *printLock;
 //uint8_t curThread;
 //int numThreads;
 
 __attribute__((naked)) void context_switch(uint16_t* new_sp, uint16_t* old_sp);
 __attribute__((naked)) void thread_start(void);
+uint8_t get_next_thread(void);
 
 /******************************************************************************
  * Function:  create_thread
@@ -34,7 +37,9 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
    void *memAddr = malloc(stack_size);
    memBegin -> threads[memBegin -> numThreads].stackBase = memAddr;
    memBegin -> threads[memBegin -> numThreads].stackEnd = memAddr + stack_size;
-
+   memBegin -> threads[memBegin -> numThreads].ticks = 0;
+   memBegin -> threads[memBegin -> numThreads].sched_count = 0;
+   memBegin -> threads[memBegin -> numThreads].curState = THREAD_READY;
    //int *id = (int*)args;
    regs_context_switch *ptr;
    memAddr = memAddr + (stack_size - sizeof(regs_context_switch));
@@ -76,6 +81,23 @@ void create_thread(char* name, uint16_t address, void* args, uint16_t stack_size
 }
 
 /******************************************************************************
+ * Function:  yield
+ * ------------------
+ * Desc: Called when a thread willingly gives up control. Happens after failing
+ *    to receive the mutex_lock.
+ * Parameter:
+ *    N/A
+ *****************************************************************************/
+void yield(void){
+   uint8_t curThread, next;
+   curThread = memBegin -> runningThread;
+   next = get_next_thread();
+   sei(); //must commence interrupts since we stopped them
+   context_switch((uint16_t*)&memBegin -> threads[next].stackPointer,
+    (uint16_t*)&memBegin -> threads[curThread].stackPointer);
+
+}
+/******************************************************************************
  * Function:  os_init
  * ------------------
  * Desc: Initializes the multithreading program by calling functions that
@@ -93,6 +115,9 @@ void os_init() {
    memBegin -> runningThread = 1;
    memBegin -> numThreads = 1;
    memBegin -> systemTime = 0;
+   mutex_init(printLock);
+
+
    return;
 }
 void os_start(void){
@@ -112,7 +137,7 @@ void os_start(void){
    memBegin -> threads[0].PC = (uint16_t) main;
    memcpy(memBegin->threads[0].tName, temp, 5);
    memBegin -> threads[0].stackSize = 0;
-   
+
 
 
 
@@ -123,6 +148,31 @@ void os_start(void){
    //(uint16_t*)&dummyThread);
 }
 
+uint8_t abcdefg(void){
+   uint8_t current = memBegin -> runningThread;
+   uint8_t dontReturn = current;
+   while(1){
+      if(current < memBegin -> numThreads)
+         ;
+   }
+}
+
+uint8_t GET_NEXT_THREAD_V2(void){
+   uint8_t curThread = memBegin -> runningThread == 7 ? 0 : memBegin -> runningThread;
+   uint8_t nextThread = 10;
+   while(nextThread == 10){
+      if(curThread < (memBegin -> numThreads - 1) &&
+         memBegin -> threads[curThread].curState == THREAD_READY)
+         nextThread = curThread;
+      else if(curThread == (memBegin -> numThreads - 1) &&
+         memBegin -> threads[curThread].curState != THREAD_READY)
+         curThread = 0;
+      else
+         curThread++;
+   }
+   memBegin -> runningThread = nextThread;
+   return nextThread;
+}
 
 /******************************************************************************
  * Function:  get_next_thread
@@ -132,17 +182,24 @@ void os_start(void){
  * Parameter:
  *    N/A
  *****************************************************************************/
-
 uint8_t get_next_thread(void) {
-   //print_string("Start value: ");
-   //print_int(memBegin -> runningThread);
+   //if we arent already at the last thread
    if((memBegin -> runningThread) < ((memBegin -> numThreads) - 1))
       memBegin -> runningThread++;
-   else
+   else //if we are at last thread
       memBegin -> runningThread = 0;
    //print_string("End value: ");
    //print_int(memBegin -> runningThread);
    return memBegin -> runningThread;
+}
+
+
+ISR(TIMER1_COMPA_vect) {
+
+                   //This interrupt routine is run once a second
+
+                   //The 2 interrupt routines will not interrupt each other
+
 }
 
 /******************************************************************************
@@ -190,13 +247,27 @@ ISR(TIMER0_COMPA_vect) {
  *    N/A
  *****************************************************************************/
 //Call this to start the system timer interrupt
+// OLD START_SYSTEM_TIMER
+// void start_system_timer() {
+//    TIMSK0 |= _BV(OCIE0A);  //interrupt on compare match
+//    TCCR0A |= _BV(WGM01);   //clear timer on compare match
+//
+//    //Generate timer interrupt every ~10 milliseconds
+//    TCCR0B |= _BV(CS02) | _BV(CS00) | _BV(CS02);    //prescalar /1024
+//    OCR0A = 156;             //generate interrupt every 9.98 milliseconds
+// }
 void start_system_timer() {
-   TIMSK0 |= _BV(OCIE0A);  //interrupt on compare match
-   TCCR0A |= _BV(WGM01);   //clear timer on compare match
+                   //start timer 0 for OS system interrupt
+                   TIMSK0 |= _BV(OCIE0A);  //interrupt on compare match
+                   TCCR0A |= _BV(WGM01);   //clear timer on compare match
+                   //Generate timer interrupt every ~10 milliseconds
+                   TCCR0B |= _BV(CS02) | _BV(CS00);    //prescalar /1024
+           OCR0A = 156;             //generate interrupt every 9.98 milliseconds
 
-   //Generate timer interrupt every ~10 milliseconds
-   TCCR0B |= _BV(CS02) | _BV(CS00) | _BV(CS02);    //prescalar /1024
-   OCR0A = 156;             //generate interrupt every 9.98 milliseconds
+                   //start timer 1 to generate interrupt every 1 second
+                   OCR1A = 15625;
+                   TIMSK1 |= _BV(OCIE1A);  //interrupt on compare
+                   TCCR1B |= _BV(WGM12) | _BV(CS12) | _BV(CS10); //slowest prescalar /1024
 }
 
 //new_sp = arg1 = r25(high) r24(low)

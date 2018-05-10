@@ -1,14 +1,76 @@
 #include "globals.h"
 #include "os.h"
 #include "synchro.h"
+#include <avr/interrupt.h>
 
 extern system_t *memBegin;
+extern struct mutex_t *printLock;
 extern volatile int global;
 extern int numThreads;
 /*
    put the thread to sleep for the specified number of ticks...
    count global timer maybe?
 */
+
+void printState(enum state curState){
+   switch(curState){
+      case THREAD_READY:
+         print_string("THREAD_READY");
+         break;
+      case THREAD_WAITING:
+         print_string("THREAD_WAITING");
+         break;
+      case THREAD_RUNNING:
+         print_string("THREAD_RUNNING");
+         break;
+      case THREAD_SLEEPING:
+         print_string("THREAD_SLEEPING");
+         break;
+   }
+}
+
+void mutex_init(struct mutex_t* m)
+{
+   m = (struct mutex_t*)malloc(sizeof(mutex_t));
+   m -> lock = 1;
+   m -> waiting = 0;
+}
+void mutex_lock(struct mutex_t* m){
+   cli();
+   if(m -> lock != 1){ //lock unavailable
+      memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
+      m -> waitList[m -> waiting++] = memBegin -> runningThread; //add to waitlist
+         //with this implementation, we need to reorder the array in mutex_unlock
+      yield();
+   }
+   else
+      m -> lock = 0;
+
+   sei();
+}
+/*
+   Simple function to resort the array after taking
+      the first member of the waitlist
+*/
+void siftArray(struct mutex_t* p, int count){
+   int i;
+   for(i = 0; i < count - 1; i++){
+      p -> waitList[i] = p -> waitList[i + 1];
+   }
+}
+void mutex_unlock(struct mutex_t* m){
+   cli();
+   m -> lock = 1;
+   //change the state of the first thread on waitlist
+   //so that get_next_thread will actually call it
+   if(m -> waiting > 0){
+      memBegin -> threads[m -> waitList[0]].curState = THREAD_READY;
+      siftArray(m, 8);
+   }
+   sei();
+}
+
+
 void thread_sleep(uint16_t ticks){
 
 }
@@ -20,12 +82,12 @@ void blink_V2(void){
    call it once to iterate the animation once
 */
 void consumer_anim(void){
-   uint8_t row = 2, col = 20;
+   uint8_t row = 26, col = 20;
    uint8_t setColor = CYAN, base = WHITE;
    int frame = 0;
    while(1){
       set_color(base);
-      row = 2;
+      row = 26;
       col = 0;
       //if(global < 10)
       //   clear_screen();
@@ -223,10 +285,11 @@ void consumer_anim(void){
 
 */
 void consumer(void){
-   int i = 5;
-   for (i = 0; i < 5; i++)
+   while(1){
+      mutex_lock(printLock);
       consumer_anim();
-   return;
+      mutex_unlock(printLock);
+   }
 }
 
 
@@ -376,11 +439,11 @@ void display_stats(void){
    uint8_t row = 4, col = 0, i = 0;
 
    while(1){
+      mutex_lock(printLock); ///////FUUUUUUUUUUUU DOES THIS WORK?!?!
       if(global < 2){  //garbage prints immediately, this cleans that up
          clear_screen();
       }
       row = 4;
-      //clear_screen();
       set_cursor(0, 0);
       set_color(YELLOW);
       print_string("Timer: ");
@@ -391,7 +454,7 @@ void display_stats(void){
       print_int(memBegin -> numThreads);
       for(int i = 0; i < memBegin -> numThreads; i++){ //print stats of each thread
          if(i < 3){
-            col = (i % 3) * 30;
+            col = (i % 3) * 33;
             row = 4;
          }
          else if (i > 2){
@@ -427,7 +490,14 @@ void display_stats(void){
          set_cursor(row++, col);
          print_string("Stack end: ");
          print_hex((uint16_t)memBegin->threads[i].stackEnd);
+         set_cursor(row++, col);
+         print_string("Sched. Count: ");
+         print_int(memBegin -> threads[memBegin -> runningThread].sched_count);
+         set_cursor(row++, col);
+         print_string("Thread Status: ");
+         printState(memBegin -> threads[i].curState);
          row++;
       }
+   mutex_unlock(printLock);
    }
 }
