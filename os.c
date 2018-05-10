@@ -184,10 +184,12 @@ uint8_t GET_NEXT_THREAD_V2(void){
  *****************************************************************************/
 uint8_t get_next_thread(void) {
    //if we arent already at the last thread
-   if((memBegin -> runningThread) < ((memBegin -> numThreads) - 1))
+   if((memBegin -> runningThread) < ((memBegin -> numThreads) - 1)){
       memBegin -> runningThread++;
-   else //if we are at last thread
+   }
+   else{ //if we are at last thread
       memBegin -> runningThread = 0;
+   }
    //print_string("End value: ");
    //print_int(memBegin -> runningThread);
    return memBegin -> runningThread;

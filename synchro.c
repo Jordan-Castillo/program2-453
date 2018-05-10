@@ -63,9 +63,10 @@ void mutex_unlock(struct mutex_t* m){
    m -> lock = 1;
    //change the state of the first thread on waitlist
    //so that get_next_thread will actually call it
-   if(m -> waiting > 0){
+   if(m -> waiting-- > 0){
       memBegin -> threads[m -> waitList[0]].curState = THREAD_READY;
       siftArray(m, 8);
+
    }
    sei();
 }
