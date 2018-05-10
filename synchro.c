@@ -76,8 +76,8 @@ void thread_sleep(uint16_t ticks){
 }
 
 void seminit(struct semaphore_t* s, int8_t value){
-   *s = (struct semaphore_t*)malloc(sizeof(semaphore_t));
-   s->count = value;
+   s = (struct semaphore_t*)malloc(sizeof(semaphore_t));
+   s->value = value;
 }
 
 void sem_wait(struct semaphore_t* s){
@@ -86,7 +86,7 @@ void sem_wait(struct semaphore_t* s){
    if (s->value < 0) {
       // block();
    }
-   sli();
+   sei();
 }
 
 void sem_signal(struct semaphore_t* s){
@@ -95,7 +95,7 @@ void sem_signal(struct semaphore_t* s){
    if (s->value <= 0) {
       // wakeup(P);
    }
-   sli();
+   sei();
 }
 
 void sem_signal_swap(struct semaphore_t* s){

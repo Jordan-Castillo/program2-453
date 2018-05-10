@@ -4,8 +4,8 @@
 //includes necessary...
 
 //Structures....
-typedef struct semaphore{
-   int count;
+typedef struct semaphore_t{
+   int value;
 }semaphore_t;
 
 typedef struct mutex_t{
@@ -24,6 +24,14 @@ void blink_V2(void);
 void consumer(void);
 void producer(void);
 void display_bounded_buffer(void);
+
+void seminit(struct semaphore_t* s, int8_t value);
+void sem_wait(struct semaphore_t* s);
+void sem_signal(struct semaphore_t* s);
+void sem_signal_swap(struct semaphore_t* s);
+
+
+
 //structures, enums, globals...
 enum state {THREAD_RUNNING, THREAD_READY, THREAD_SLEEPING, THREAD_WAITING};
 //THREAD_RUNNING - instructions currently being processed by processor
