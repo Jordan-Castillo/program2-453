@@ -8,12 +8,17 @@ typedef struct {
    int count;
 }semaphore;
 
-typedef struct {
-   bool lock;
-}mutex;
+typedef struct mutex_t{
+   int lock;
+   int waitList[8];
+   int waiting;
+}mutex_t;
 
 
 //function constructors...
+void mutex_init(struct mutex_t* m);
+void mutex_lock(struct mutex_t* m);
+void mutex_unlock(struct mutex_t* m);
 void display_stats(void);
 void blink_V2(void);
 void consumer(void);

@@ -266,7 +266,6 @@ void printStats(void){
          clear_screen();
       }
       row = 4;
-      //clear_screen();
       set_cursor(0, 0);
       set_color(YELLOW);
       print_string("Timer: ");
