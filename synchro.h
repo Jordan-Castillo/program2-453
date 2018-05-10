@@ -4,9 +4,9 @@
 //includes necessary...
 
 //Structures....
-typedef struct {
+typedef struct semaphore{
    int count;
-}semaphore;
+}semaphore_t;
 
 typedef struct {
    bool lock;
