@@ -92,7 +92,7 @@ void yield(void){
    uint8_t curThread, next;
    curThread = memBegin -> runningThread;
 
-   //memBegin -> threads[curThread].curState = THREAD_WAITING;
+   memBegin -> threads[curThread].curState = THREAD_WAITING;
    next = get_next_thread();
    memBegin -> threads[next].curState = THREAD_RUNNING;
 
@@ -153,35 +153,28 @@ void os_start(void){
    //(uint16_t*)&dummyThread);
 }
 
-uint8_t get_next_thread2(void){
+uint8_t get_next_thread(void){
    uint8_t dontReturn = memBegin -> runningThread;
-   uint8_t current = ((dontReturn + 1) < (memBegin -> numThreads - 1)) ? dontReturn + 1 : 0;
+   uint8_t current = ((dontReturn + 1) <= (memBegin -> numThreads - 1)) ? (dontReturn + 1) : 0;
    while(1){
       if(memBegin -> threads[current].curState == THREAD_READY && current != dontReturn){
          memBegin -> runningThread = current;
+         memBegin -> threads[current].sched_count++;
          return current;
       }
-      current = ((current + 1) < (memBegin -> numThreads - 1)) ? current + 1 : 0;
+      current = ((current + 1) <= (memBegin -> numThreads - 1)) ? current + 1 : 0;
    }
 }
 
-uint8_t GET_NEXT_THREAD_V2(void){
-   uint8_t curThread = memBegin -> runningThread == 7 ? 0 : memBegin -> runningThread;
-   uint8_t nextThread = 10;
-   while(nextThread == 10){
-      if(curThread < (memBegin -> numThreads - 1) &&
-         memBegin -> threads[curThread].curState == THREAD_READY)
-         nextThread = curThread;
-      else if(curThread == (memBegin -> numThreads - 1) &&
-         memBegin -> threads[curThread].curState != THREAD_READY)
-         curThread = 0;
-      else
-         curThread++;
+uint8_t GNT(void){
+   uint8_t dontReturn = memBegin -> runningThread;
+   uint8_t max = memBegin -> numThreads - 1;
+   uint8_t current = dontReturn++;
+   while(1){
+      if(current <= max && max)
+         ;
    }
-   memBegin -> runningThread = nextThread;
-   return nextThread;
 }
-
 /******************************************************************************
  * Function:  get_next_thread
  * --------------------------
@@ -190,7 +183,7 @@ uint8_t GET_NEXT_THREAD_V2(void){
  * Parameter:
  *    N/A
  *****************************************************************************/
-uint8_t get_next_thread(void) {
+uint8_t get_next_thread2(void) {
    //if we arent already at the last thread
    if((memBegin -> runningThread) < ((memBegin -> numThreads) - 1)){
       memBegin -> runningThread++;
@@ -207,7 +200,9 @@ uint8_t get_next_thread(void) {
 
 
 ISR(TIMER1_COMPA_vect) {
-
+   uint8_t i;
+   for(i = 0; i < memBegin -> numThreads; i++)
+      memBegin -> threads[i].sched_count = 0;
                    //This interrupt routine is run once a second
 
                    //The 2 interrupt routines will not interrupt each other
@@ -228,7 +223,8 @@ ISR(TIMER1_COMPA_vect) {
 ISR(TIMER0_COMPA_vect) {
    void *new_sp, *old_sp;
    uint8_t curNode = memBegin -> runningThread;
-   memBegin -> threads[curNode].curState = THREAD_READY;
+   if(memBegin -> threads[curNode].curState != THREAD_WAITING)
+      memBegin -> threads[curNode].curState = THREAD_READY;
    uint8_t nextThread = get_next_thread();
    memBegin -> threads[nextThread].curState = THREAD_RUNNING;
    global++;
@@ -248,6 +244,7 @@ ISR(TIMER0_COMPA_vect) {
 
    context_switch((uint16_t*)&memBegin -> threads[nextThread].stackPointer,
     (uint16_t*)&memBegin -> threads[curNode].stackPointer);
+
    //At the end of this ISR, GCC generated code will pop r18-r31, r1,
    //and r0 before exiting the ISR
 }

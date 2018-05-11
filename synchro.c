@@ -65,13 +65,13 @@ void nothing(void){
 void printState(enum state curState){
    switch(curState){
       case THREAD_READY:
-         print_string("THREAD_READY");
+         print_string("THREAD_READY   ");
          break;
       case THREAD_WAITING:
-         print_string("THREAD_WAITING");
+         print_string("THREAD_WAITING ");
          break;
       case THREAD_RUNNING:
-         print_string("THREAD_RUNNING");
+         print_string("THREAD_RUNNING  ");
          break;
       case THREAD_SLEEPING:
          print_string("THREAD_SLEEPING");
@@ -101,7 +101,8 @@ void mutex_lock(struct mutex_t* m){
    cli();
    if(m -> lock < 1){ //lock unavailable
       //memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
-      m -> waitList[m -> waiting++] = memBegin -> runningThread; //add to waitlist
+      m -> waitList[m -> waiting] = memBegin -> runningThread; //add to waitlist
+      m -> waiting++;
          //with this implementation, we need to reorder the array in mutex_unlock
       memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
       yield();
@@ -126,9 +127,10 @@ void mutex_unlock(struct mutex_t* m){
    m -> lock = 1;
    //change the state of the first thread on waitlist
    //so that get_next_thread will actually call it
-   if(m -> waiting-- > 0){
+   if(m -> waiting > 0){
       memBegin -> threads[m -> waitList[0]].curState = THREAD_READY;
       siftArray(m, 8);
+      m -> waiting--;
 
    }
    sei();
@@ -379,6 +381,7 @@ void consumer_anim(void){
 void consumer(void){
    while(1){
       mutex_lock(printLock);
+      _delay_ms(5);
       //consumer_anim();
       mutex_unlock(printLock);
    }
@@ -531,7 +534,7 @@ void display_stats(void){
    uint8_t row = 4, col = 0, i = 0;
 
    while(1){
-      mutex_lock(printLock); ///////FUUUUUUUUUUUU DOES THIS WORK?!?!
+      mutex_lock(printLock);
       if(global < 10){  //garbage prints immediately, this cleans that up
          clear_screen();
       }
