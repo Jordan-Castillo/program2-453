@@ -7,16 +7,36 @@ extern system_t *memBegin;
 extern mutex_t *printLock;
 extern volatile int global;
 extern int numThreads;
+volatile int buffer[10];
+
 
 void printState(enum state curState);
 
+void producer1(void){
+   while(1){
+      mutex_lock(&printLock);
+      mutex_unlock(&printLock);
+   }
+}
+void display_bounded_buffer1(void){
+   while(1){
+      mutex_lock(&printLock);
+      mutex_unlock(&printLock);
+   }
+}
+void consumer1(void){
+   while(1){
+      mutex_lock(&printLock);
+      mutex_unlock(&printLock);
+   }
+}
 
 void printtt(void){
    int col = 0, row = 2;
    while(1){
       col = 0;
       row = 2;
-      mutex_lock(printLock);
+      mutex_lock(&printLock);
       // if(global < 10)
       //    clear_screen();
       set_cursor(row++, col);
@@ -54,12 +74,12 @@ void printtt(void){
       print_int(printLock -> waitList[6]);
       set_cursor(row++, col);
       print_int(printLock -> waitList[7]);
-      mutex_unlock(printLock);
+      mutex_unlock(&printLock);
    }
 }
 void nothing(void){
-   mutex_lock(printLock);
-   mutex_unlock(printLock);
+   mutex_lock(&printLock);
+   mutex_unlock(&printLock);
 }
 
 void printState(enum state curState){
@@ -79,58 +99,58 @@ void printState(enum state curState){
    }
 }
 
-void mutex_init(struct mutex_t* m)
+void mutex_init(struct mutex_t** m)
 {
    //m = (mutex_t*)malloc(sizeof(mutex_t));
-   m -> lock = 1;
-   m -> waiting = 0;
+   (*m) -> lock = 1;
+   (*m) -> waiting = 0;
    //m -> waitList = malloc(sizeof(int) * 8);
-   m -> waitList[0] = 0;
-   m -> waitList[1] = 0;
-   m -> waitList[2] = 0;
-   m -> waitList[3] = 0;
-   m -> waitList[4] = 0;
-   m -> waitList[5] = 0;
-   m -> waitList[6] = 0;
-   m -> waitList[7] = 0;
+   (*m) -> waitList[0] = 0;
+   (*m) -> waitList[1] = 0;
+   (*m) -> waitList[2] = 0;
+   (*m) -> waitList[3] = 0;
+   (*m) -> waitList[4] = 0;
+   (*m) -> waitList[5] = 0;
+   (*m) -> waitList[6] = 0;
+   (*m) -> waitList[7] = 0;
    //print_string("   here");
    //print_int(m -> lock);
    //print_string("here   ");
 }
-void mutex_lock(struct mutex_t* m){
+void mutex_lock(struct mutex_t** m){
    cli();
-   if(m -> lock < 1){ //lock unavailable
+   if((*m) -> lock < 1){ //lock unavailable
       //memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
-      m -> waitList[m -> waiting] = memBegin -> runningThread; //add to waitlist
-      m -> waiting++;
+      (*m) -> waitList[(*m) -> waiting] = memBegin -> runningThread; //add to waitlist
+      (*m) -> waiting++;
          //with this implementation, we need to reorder the array in mutex_unlock
       memBegin -> threads[memBegin -> runningThread].curState = THREAD_WAITING;
       yield();
    }
-   else
-      m -> lock = 0;
-
+   else{
+      (*m) -> lock = 0;
+   }
    sei();
 }
 /*
    Simple function to resort the array after taking
       the first member of the waitlist
 */
-void siftArray(struct mutex_t* p, int count){
+void siftArray(struct mutex_t** p, int count){
    int i;
    for(i = 0; i < count - 1; i++){
-      p -> waitList[i] = p -> waitList[i + 1];
+      (*p) -> waitList[i] = (*p) -> waitList[i + 1];
    }
 }
-void mutex_unlock(struct mutex_t* m){
+void mutex_unlock(struct mutex_t** m){
    cli();
-   m -> lock = 1;
+   (*m) -> lock = 1;
    //change the state of the first thread on waitlist
    //so that get_next_thread will actually call it
-   if(m -> waiting > 0){
-      memBegin -> threads[m -> waitList[0]].curState = THREAD_READY;
+   if((*m) -> waiting > 0){
+      memBegin -> threads[(*m) -> waitList[0]].curState = THREAD_READY;
       siftArray(m, 8);
-      m -> waiting--;
+      (*m) -> waiting--;
 
    }
    sei();
@@ -176,16 +196,16 @@ void blink_V2(void){
    call it once to iterate the animation once
 */
 void consumer_anim(void){
-   uint8_t row = 26, col = 20;
+   uint8_t row = 2, col = 0;
    uint8_t setColor = CYAN, base = WHITE;
    int frame = 0;
    while(1){
-      set_color(base);
-      row = 26;
+      row = 2;
       col = 0;
-      //if(global < 10)
-      //   clear_screen();
-      if(frame >= 0 && frame <= 10){
+   //this might not be necessary in the final product, but just incase saved here
+   //   if(global < 10)
+   //      clear_screen();
+      if(frame >= 0 && frame <= 20){
          set_cursor(row++, col);
          print_string("               ");
          set_cursor(row++, col);
@@ -204,116 +224,7 @@ void consumer_anim(void){
          print_string("   #   ");
          frame++;
       }
-      else if(frame > 10 && frame <= 20){
-         set_cursor(row++, col);
-         print_string("CONSUMING");
-         set_cursor(row++, col);
-         print_string("   #   ");
-         set_cursor(row++, col);
-         print_string("  ###  ");
-         set_cursor(row++, col);
-         print_string(" #####  ");
-         set_cursor(row++, col);
-         print_string("###");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("###");
-         set_cursor(row++, col);
-         print_string(" #####  ");
-         set_cursor(row++, col);
-         print_string("  ###  ");
-         set_cursor(row++, col);
-         print_string("   #   ");
-         frame++;
-      }
-      else if(frame > 20 && frame <= 30){
-         set_cursor(row++, col);
-         print_string("               ");
-         set_cursor(row++, col);
-         print_string("   #   ");
-         set_cursor(row++, col);
-         print_string("  ###  ");
-         set_cursor(row++, col);
-         print_string(" ##");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("##  ");
-         set_cursor(row++, col);
-         print_string("##");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("##");
-         set_cursor(row++, col);
-         print_string(" ##");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("##  ");
-         set_cursor(row++, col);
-         print_string("  ###  ");
-         set_cursor(row++, col);
-         print_string("   #   ");
-         frame++;
-      }
-      else if(frame > 30 && frame <= 40){
-         set_cursor(row++, col);
-         print_string("CONSUMING");
-         set_cursor(row++, col);
-         print_string("   #   ");
-         set_cursor(row++, col);
-         print_string("  #");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#  ");
-         set_cursor(row++, col);
-         print_string(" #");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#  ");
-         set_cursor(row++, col);
-         print_string("#");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("###");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#");
-         set_cursor(row++, col);
-         print_string(" #");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#  ");
-         set_cursor(row++, col);
-         print_string("  #");
-         set_color(setColor);
-         print_string("0");
-         set_color(base);
-         print_string("#  ");
-         set_cursor(row++, col);
-         print_string("   #   ");
-         frame++;
-      }
-      else if(frame > 40 && frame <= 50){
+      else if(frame > 20 && frame <= 40){
          set_cursor(row++, col);
          print_string("                ");
          set_cursor(row++, col);
@@ -354,7 +265,118 @@ void consumer_anim(void){
          print_string("   0   ");
          frame++;
       }
-      else if(frame == 51){
+      else if(frame > 40 && frame <= 60){
+         set_cursor(row++, col);
+         print_string("CONSUMING");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string(" #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("###");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_cursor(row++, col);
+         print_string(" #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string("  #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 60 && frame <= 80){
+         set_cursor(row++, col);
+         print_string("               ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" ##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##  ");
+         set_cursor(row++, col);
+         print_string("##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##");
+         set_cursor(row++, col);
+         print_string(" ##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame > 80 && frame <= 100){
+         set_cursor(row++, col);
+         print_string("CONSUMING");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("###");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("###");
+         set_cursor(row++, col);
+         print_string(" #####  ");
+         set_cursor(row++, col);
+         print_string("  ###  ");
+         set_cursor(row++, col);
+         print_string("   #   ");
+         frame++;
+      }
+      else if(frame == 101){
+         set_cursor(row++, col);
+         print_string("        ");
          set_cursor(row++, col);
          print_string("        ");
          set_cursor(row++, col);
@@ -374,33 +396,35 @@ void consumer_anim(void){
       else
          return;
    }
+   return;
 }
 /*
 
 */
 void consumer(void){
    while(1){
-      mutex_lock(printLock);
-      _delay_ms(5);
-      //consumer_anim();
-      mutex_unlock(printLock);
+      mutex_lock(&printLock);
+      // if(memBegin -> threads[memBegin -> runningThread].curState == THREAD_RUNNING)
+          consumer_anim();
+      mutex_unlock(&printLock);
    }
 }
-
-
 /*
 
 */
 void producer_anim(void){
-   uint8_t row = 2, col = 0;
+   uint8_t row = 26, col = 20;
+   uint8_t setColor = CYAN, base = WHITE;
    int frame = 0;
    while(1){
-      row = 2;
-      col = 0;
-   //this might not be necessary in the final product, but just incase saved here
-   //   if(global < 10)
-   //      clear_screen();
-      if(frame >= 0 && frame <= 10){
+      set_color(base);
+      row = 26;
+      col = 20;
+      //if(global < 10)
+      //   clear_screen();
+      if(frame >= 0 && frame <= 20){
+         set_cursor(row++, col);
+         print_string("               ");
          set_cursor(row++, col);
          print_string("   #   ");
          set_cursor(row++, col);
@@ -417,7 +441,9 @@ void producer_anim(void){
          print_string("   #   ");
          frame++;
       }
-      else if(frame > 10 && frame <= 20){
+      else if(frame > 20 && frame <= 40){
+         set_cursor(row++, col);
+         print_string("PRODUCING");
          set_cursor(row++, col);
          print_string("   #   ");
          set_cursor(row++, col);
@@ -425,7 +451,11 @@ void producer_anim(void){
          set_cursor(row++, col);
          print_string(" #####  ");
          set_cursor(row++, col);
-         print_string("###0###");
+         print_string("###");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("###");
          set_cursor(row++, col);
          print_string(" #####  ");
          set_cursor(row++, col);
@@ -434,60 +464,134 @@ void producer_anim(void){
          print_string("   #   ");
          frame++;
       }
-      else if(frame > 20 && frame <= 30){
+      else if(frame > 40 && frame <= 60){
+         set_cursor(row++, col);
+         print_string("               ");
          set_cursor(row++, col);
          print_string("   #   ");
          set_cursor(row++, col);
          print_string("  ###  ");
          set_cursor(row++, col);
-         print_string(" ##0##  ");
+         print_string(" ##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##  ");
          set_cursor(row++, col);
-         print_string("##0#0##");
+         print_string("##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##");
          set_cursor(row++, col);
-         print_string(" ##0##  ");
+         print_string(" ##");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("##  ");
          set_cursor(row++, col);
          print_string("  ###  ");
          set_cursor(row++, col);
          print_string("   #   ");
          frame++;
       }
-      else if(frame > 30 && frame <= 40){
+      else if(frame > 60 && frame <= 80){
+         set_cursor(row++, col);
+         print_string("PRODUCING");
          set_cursor(row++, col);
          print_string("   #   ");
          set_cursor(row++, col);
-         print_string("  #0#  ");
+         print_string("  #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
          set_cursor(row++, col);
-         print_string(" #0#0#  ");
+         print_string(" #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
          set_cursor(row++, col);
-         print_string("#0###0#");
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("###");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
          set_cursor(row++, col);
-         print_string(" #0#0#  ");
+         print_string(" #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
          set_cursor(row++, col);
-         print_string("  #0#  ");
+         print_string("  #");
+         set_color(setColor);
+         print_string("0");
+         set_color(base);
+         print_string("#  ");
          set_cursor(row++, col);
          print_string("   #   ");
          frame++;
       }
-      else if(frame > 40 && frame <= 50){
+      else if(frame > 80 && frame <= 100){
          set_cursor(row++, col);
+         print_string("                ");
+         set_cursor(row++, col);
+         set_color(setColor);
          print_string("   0   ");
          set_cursor(row++, col);
-         print_string("  0#0  ");
+         set_color(setColor);
+         print_string("  0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0  ");
          set_cursor(row++, col);
-         print_string(" 0###0  ");
+         print_string(" 0");
+         set_color(base);
+         print_string("###");
+         set_color(setColor);
+         print_string("0  ");
          set_cursor(row++, col);
-         print_string("0#####0");
+         print_string("0");
+         set_color(base);
+         print_string("#####");
+         set_color(setColor);
+         print_string("0");
          set_cursor(row++, col);
-         print_string(" 0###0  ");
+         print_string(" 0");
+         set_color(base);
+         print_string("###");
+         set_color(setColor);
+         print_string("0  ");
          set_cursor(row++, col);
-         print_string("  0#0  ");
+         print_string("  0");
+         set_color(base);
+         print_string("#");
+         set_color(setColor);
+         print_string("0  ");
          set_cursor(row++, col);
          print_string("   0   ");
          frame++;
       }
-      else if(frame == 51){
-         set_cursor(row++, col);
-         print_string("        ");
+      else if(frame == 101){
          set_cursor(row++, col);
          print_string("        ");
          set_cursor(row++, col);
@@ -507,11 +611,9 @@ void producer_anim(void){
       else
          return;
    }
-   return;
 }
 
 /*
-
 */
 void producer(void){
    int i = 5;
@@ -519,12 +621,153 @@ void producer(void){
       producer_anim();
    return;
 }
+
 /*
 
 */
 void display_bounded_buffer(void){
+   int row = 1;
+      int i;
+      int col = 40;
+      int count = 0;
 
-   return;
+      set_cursor(row, col);
+
+      for (i = 0; i < 10; i++){
+         buffer[i] = 0;
+      }
+
+      while(count != 10){
+         row = 1;
+         col = 40;
+         set_cursor(row , col);
+
+         buffer[count++]  = 1;
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         set_cursor(row++, col);
+         print_string("| Bounded Buffer     |");
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[0] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[1] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+
+         print_string("+--------------------+");
+         if (buffer[2] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[3] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[4] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[5] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[6] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+
+         print_string("+--------------------+");
+         if (buffer[7] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[8] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+         if (buffer[9] == 0){
+            set_cursor(row++, col);
+            print_string("|                    |");
+         }
+         else{
+            set_cursor(row++, col);
+            print_string("|####################|");
+         }
+         set_cursor(row++, col);
+         print_string("+--------------------+");
+
+      }
+
+      return;
+}
+
+void just_animations(void){
+   while(1){
+      clear_screen();
+      consumer_anim();
+      clear_screen();
+      producer_anim();
+clear_screen();
+      display_bounded_buffer();
+
+   }
 }
 /*
 
@@ -534,7 +777,7 @@ void display_stats(void){
    uint8_t row = 4, col = 0, i = 0;
 
    while(1){
-      mutex_lock(printLock);
+      mutex_lock(&printLock);
       if(global < 10){  //garbage prints immediately, this cleans that up
          clear_screen();
       }
@@ -553,7 +796,7 @@ void display_stats(void){
             row = 4;
          }
          else if (i > 2){
-            col = (i % 3) * 30;
+            col = (i % 3) * 33;
             row = 15;
          }
 
@@ -593,16 +836,16 @@ void display_stats(void){
          printState(memBegin -> threads[i].curState);
          row++;
       }
-      set_cursor(35, 35);
-      print_string("waitlist[0]: ");
-      print_int(printLock -> waitList[0]);
-      print_string("- lock: ");
-      print_int(printLock -> lock);
-   mutex_unlock(printLock);
-      set_cursor(36, 35);
-      print_string("waitlist[0]post unlock: ");
-      print_int(printLock -> waitList[0]);
-      print_string("- lock: ");
-      print_int(printLock -> lock);
+      // set_cursor(35, 35);
+      // print_string("waitlist[0]: ");
+      // print_int(printLock -> waitList[0]);
+      // print_string("- lock: ");
+      // print_int(printLock -> lock);
+   mutex_unlock(&printLock);
+      // set_cursor(36, 35);
+      // print_string("waitlist[0]post unlock: ");
+      // print_int(printLock -> waitList[0]);
+      // print_string("- lock: ");
+      // print_int(printLock -> lock);
    }
 }

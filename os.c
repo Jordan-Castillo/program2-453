@@ -96,6 +96,7 @@ void yield(void){
    next = get_next_thread();
    memBegin -> threads[next].curState = THREAD_RUNNING;
 
+
    context_switch((uint16_t*)&memBegin -> threads[next].stackPointer,
     (uint16_t*)&memBegin -> threads[curThread].stackPointer);
     //sei(); //must commence interrupts since we stopped them
@@ -119,7 +120,7 @@ void os_init() {
    memBegin -> numThreads = 1;
    memBegin -> systemTime = 0;
    printLock = (mutex_t*)malloc(sizeof(mutex_t));
-   mutex_init(printLock);
+   mutex_init(&printLock);
    //print_int(printLock -> lock);
 
    return;
@@ -228,7 +229,7 @@ ISR(TIMER0_COMPA_vect) {
    uint8_t nextThread = get_next_thread();
    memBegin -> threads[nextThread].curState = THREAD_RUNNING;
    global++;
-
+   memBegin -> runningThread = nextThread;
    //At the beginning of this ISR, the registers r0, r1, and r18-31 have
    //already been pushed to the stack
 

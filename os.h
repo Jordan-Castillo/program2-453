@@ -19,7 +19,7 @@ void yield(void);
 typedef struct thread_t {
    uint8_t id;
    uint8_t ticks;
-   uint32_t sched_count;
+   volatile uint32_t sched_count;
    volatile enum state curState;
    void *stackPointer;
    char tName[11];
@@ -33,8 +33,8 @@ typedef struct thread_t {
 
 typedef struct system_t {
    thread_t threads[8];
-   uint8_t runningThread;
-   uint8_t numThreads;
+   volatile uint8_t runningThread;
+   volatile uint8_t numThreads;
    uint32_t systemTime;
    char buffer[11]; //necessary to make divisible by 16
 }system_t;

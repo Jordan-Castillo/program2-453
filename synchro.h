@@ -15,15 +15,22 @@ typedef struct mutex_t{
    int volatile waiting;
 }mutex_t;
 
+//just do nothing functions...
+void consumer1(void);
+void producer1(void);
+void display_bounded_buffer1(void);
+
+
 
 //function constructors...
 void printtt(void);
 void nothing(void);
+void just_animations(void);
 
 
-void mutex_init(struct mutex_t* m);
-void mutex_lock(struct mutex_t* m);
-void mutex_unlock(struct mutex_t* m);
+void mutex_init(struct mutex_t** m);
+void mutex_lock(struct mutex_t** m);
+void mutex_unlock(struct mutex_t** m);
 void display_stats(void);
 void blink_V2(void);
 void consumer(void);
